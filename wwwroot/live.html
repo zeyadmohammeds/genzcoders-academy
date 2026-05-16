@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Classroom · ElSewedy GenZ Coders</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Work+Sans:wght@400;500;650&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="classroom-body">
+  <header class="shell nav">
+    <a class="brand" href="/">
+      <span class="brand-mark">GZ</span>
+      <span>Live Classroom</span>
+    </a>
+    <nav>
+      <a href="/">Home</a>
+      <a class="button ghost" href="/api/auth/google?returnUrl=/live.html">Sign in with Google</a>
+    </nav>
+  </header>
+
+  <main class="shell classroom">
+    <section class="zoom-stage">
+      <div class="zoom-placeholder">
+        <p class="eyebrow">Zoom Meeting SDK Surface</p>
+        <h1>Embedded class window</h1>
+        <p>After adding Zoom SDK credentials, this panel is where the meeting client mounts. The API already keeps signature generation server-side at `/api/live-sessions/zoom-signature`.</p>
+        <button class="button primary" id="loadSessions">Load upcoming sessions</button>
+      </div>
+    </section>
+    <aside class="class-panel">
+      <h2>Session control</h2>
+      <p>Students stay in the academy environment while CTAs track support, attendance, tasks, and XP beside the live class.</p>
+      <div id="liveSessions" class="session-list compact"></div>
+    </aside>
+  </main>
+  <script src="/site.js"></script>
+</body>
+</html>

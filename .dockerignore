@@ -1,0 +1,14 @@
+**/.git
+**/.github
+**/.vscode
+**/bin
+**/obj
+**/out
+**/publish
+**/.env
+**/.env.*
+Dockerfile
+.dockerignore
+node_modules
+frontend
+wwwroot/lib

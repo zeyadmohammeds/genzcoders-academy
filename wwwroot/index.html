@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ElSewedy GenZ Coders</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Work+Sans:wght@400;500;650&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="shell nav">
+    <a class="brand" href="/">
+      <span class="brand-mark">GZ</span>
+      <span>ElSewedy GenZ Coders</span>
+    </a>
+    <nav>
+      <a href="#courses">Courses</a>
+      <a href="#live">Live</a>
+      <a href="#partners">Schools</a>
+      <a class="button ghost" href="/api/auth/google">Sign in with Google</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero shell">
+      <div class="hero-copy">
+        <p class="eyebrow">Launching 8 June 2026 · Ages 10-18 · Egypt</p>
+        <h1>Students do not just learn code. They build proof.</h1>
+        <p class="lede">A live, project-based academy from El Sewedy Electrometer: engineer-led sessions, CTA support labs, parent visibility, school partnerships, XP, badges, referrals, and embedded Zoom classrooms.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#courses">Explore courses</a>
+          <a class="button secondary" href="/live.html">Open live classroom</a>
+        </div>
+      </div>
+      <aside class="launch-card" aria-label="Launch metrics">
+        <span class="stamp">Phase 1</span>
+        <strong>5 courses</strong>
+        <p>Scratch, C++, Robotics, Web Apps with AI, and Advanced C++.</p>
+        <div class="rail">
+          <span style="--w: 72%"></span>
+        </div>
+        <small>Target: 50 enrolled students, 3 school MOUs, 30% referral-driven enrollment.</small>
+      </aside>
+    </section>
+
+    <section class="strip">
+      <div class="shell proof-grid">
+        <article><b>8</b><span>core sessions per course</span></article>
+        <article><b>4h</b><span>CTA technical support labs</span></article>
+        <article><b>15%</b><span>partner-school discount</span></article>
+        <article><b>500+</b><span>social followers target</span></article>
+      </div>
+    </section>
+
+    <section id="courses" class="shell section">
+      <div class="section-head">
+        <p class="eyebrow">Course engine</p>
+        <h2>Pick a track, leave with a public project.</h2>
+      </div>
+      <div id="courseGrid" class="course-grid" aria-live="polite"></div>
+    </section>
+
+    <section id="live" class="shell section split">
+      <div>
+        <p class="eyebrow">Embedded Zoom</p>
+        <h2>Live sessions stay inside the academy website.</h2>
+        <p>The backend exposes session metadata and a protected place for the Zoom Meeting SDK signature. That means the next integration step is secure and clean: users join from the platform, not a loose external link.</p>
+        <a class="button primary" href="/live.html">Preview live classroom</a>
+      </div>
+      <div id="sessionList" class="session-list"></div>
+    </section>
+
+    <section id="partners" class="shell section partner-panel">
+      <div>
+        <p class="eyebrow">School partnerships</p>
+        <h2>Bring the academy to your students with zero staff burden.</h2>
+        <p>Founding schools receive partner pricing, workshops, school reporting, CTA mentorship, and a direct coordinator workflow.</p>
+      </div>
+      <form id="partnerForm" class="lead-form">
+        <input name="schoolName" placeholder="School name" required>
+        <input name="contactName" placeholder="Contact name" required>
+        <input name="email" placeholder="Email" type="email">
+        <input name="phone" placeholder="Phone / WhatsApp">
+        <textarea name="message" placeholder="Tell us what you want to arrange"></textarea>
+        <button class="button primary" type="submit">Request partnership call</button>
+        <p id="formMessage" class="form-message"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="/site.js"></script>
+</body>
+</html>
