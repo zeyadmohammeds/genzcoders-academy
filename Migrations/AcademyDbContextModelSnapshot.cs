@@ -17,7 +17,7 @@ namespace GenZCoders.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -323,7 +323,13 @@ namespace GenZCoders.Migrations
                     b.Property<string>("IconName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsFeatured")
@@ -408,6 +414,15 @@ namespace GenZCoders.Migrations
 
                     b.Property<bool>("PaymentCompleted")
                         .HasColumnType("bit");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PaymentReceiptPendingReview")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PaymentReceiptUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PaymentUnlocked")
                         .HasColumnType("bit");

@@ -1,5 +1,36 @@
 namespace GenZCoders.DTOs;
 
+public record CourseSessionCreateDto(
+    string Title,
+    string? Description,
+    int SessionNumber,
+    int DurationMinutes,
+    string SessionType,
+    int SortOrder);
+
+public record CourseLessonCreateDto(
+    string Title,
+    string Summary,
+    string ContentMarkdown,
+    int WeekNumber,
+    string SessionType,
+    int SortOrder);
+
+public record CourseMaterialCreateDto(
+    string Title,
+    string MaterialType,
+    string Url,
+    string? Description,
+    bool IsDownloadable);
+
+public record CourseQuestionCreateDto(
+    string QuestionText,
+    string QuestionType,
+    string OptionsJson,
+    string? CorrectAnswer,
+    bool IsRequired,
+    int SortOrder);
+
 // Admin course management DTOs
 public record AdminCourseDto(
     Guid Id,
@@ -13,6 +44,7 @@ public record AdminCourseDto(
     int? MaximumAge,
     decimal PriceEgp,
     string? CoverImageUrl,
+    string? ImageUrl,
     string? IconName,
     string? ColorHex,
     string SkillsTaughtJson,
@@ -23,6 +55,7 @@ public record AdminCourseDto(
     string Level,
     bool IsActive,
     bool IsFeatured,
+    bool IsDeleted,
     IReadOnlyList<CourseModuleDto> Modules);
 
 public record AdminCourseCreateRequest(
@@ -36,6 +69,7 @@ public record AdminCourseCreateRequest(
     int? MaximumAge,
     decimal PriceEgp,
     string? CoverImageUrl,
+    string? ImageUrl,
     string? IconName,
     string? ColorHex,
     string? SkillsTaughtJson,
@@ -45,7 +79,12 @@ public record AdminCourseCreateRequest(
     int SupportSessions,
     string Level,
     bool IsActive,
-    bool IsFeatured);
+    bool IsFeatured,
+    IReadOnlyList<CourseSessionCreateDto>? CourseSessions,
+    IReadOnlyList<CourseLessonCreateDto>? Lessons,
+    IReadOnlyList<CourseMaterialCreateDto>? Materials,
+    IReadOnlyList<CourseQuestionCreateDto>? Questions,
+    bool? IsDeleted = null);
 
 public record AdminRoundCreateRequest(
     Guid CourseId,
@@ -56,6 +95,14 @@ public record AdminRoundCreateRequest(
     bool IsEnrollmentOpen,
     bool AutoAcceptPaidApplications,
     bool RequireEngineerApproval);
+
+public record UpdateRoundWeekRequest(
+    string? WeekTitle,
+    string? SessionType,
+    string? Status,
+    string? SessionLink,
+    string? RecordingUrl,
+    int WeekNumber);
 
 public record AdminBroadcastRequest(
     string Title,

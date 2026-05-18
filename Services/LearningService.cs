@@ -184,6 +184,28 @@ public class LearningService(AcademyDbContext db, INotificationService notificat
         var attendanceCount = await db.AttendanceRecords.CountAsync(x => x.StudentUserId == userId && x.Status == AttendanceStatus.Present, cancellationToken);
         var tasksCount = await db.TaskSubmissions.CountAsync(x => x.StudentUserId == userId, cancellationToken);
 
+        // Fetch round classmate statistics and list
+        var roundStudentCount = enrollment.CohortId.HasValue 
+            ? await db.CohortEnrollments.CountAsync(x => x.CohortId == enrollment.CohortId.Value, cancellationToken) 
+            : 0;
+
+        var courseStudentCount = await db.Enrollments.CountAsync(x => x.CourseId == courseId, cancellationToken);
+
+        var classmates = enrollment.CohortId.HasValue 
+            ? await db.CohortEnrollments
+                .AsNoTracking()
+                .Where(x => x.CohortId == enrollment.CohortId.Value)
+                .Join(db.Users, ce => ce.StudentUserId, u => u.Id, (ce, u) => new { ce, u })
+                .Join(db.StudentProfiles, combined => combined.u.Id, sp => sp.UserId, (combined, sp) => new ClassmateDto(
+                    combined.u.Id,
+                    combined.u.DisplayName ?? combined.u.UserName ?? "Student",
+                    combined.u.Email,
+                    sp.Level,
+                    sp.TotalXp
+                ))
+                .ToListAsync(cancellationToken)
+            : new List<ClassmateDto>();
+
         var tasks = await db.LearningTasks.AsNoTracking()
             .Where(x => x.CohortId == enrollment.CohortId)
             .OrderBy(x => x.CreatedAt)
@@ -208,7 +230,10 @@ public class LearningService(AcademyDbContext db, INotificationService notificat
             materials,
             tasks,
             new CourseProgressDto(profile?.TotalXp ?? 0, attendanceCount, tasksCount, 0, 0),
-            null, null, null);
+            null, null, null,
+            roundStudentCount,
+            courseStudentCount,
+            classmates);
     }
 
     public async Task<StudentProgressDto> GetProgressAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -332,7 +357,11 @@ public class LearningService(AcademyDbContext db, INotificationService notificat
             s.Cohort?.EngineerUser?.DisplayName,
             s.RecordingUrl,
             s.Cohort?.ZoomJoinUrl,
-            s.ScheduledAt > now
+            s.ScheduledAt > now,
+            s.Cohort?.CourseId,
+            s.Cohort?.Course?.Title,
+            s.Cohort?.Course?.Slug,
+            s.CohortId
         )).ToList();
     }
 

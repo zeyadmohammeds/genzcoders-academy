@@ -11,6 +11,8 @@ public record CourseDto(
     int CoreSessions,
     int SupportSessions,
     string Level,
+    string? CoverImageUrl,
+    string? ImageUrl,
     IReadOnlyList<CourseModuleDto> Modules);
 
 public record CourseModuleDto(int SortOrder, string Title, string ProjectOutcome);

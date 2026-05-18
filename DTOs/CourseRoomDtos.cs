@@ -15,7 +15,17 @@ public record CourseRoomDto(
     CourseProgressDto Progress,
     string? ZoomMeetingId,
     string? ZoomJoinUrl,
-    string? ZoomMeetingPassword);
+    string? ZoomMeetingPassword,
+    int RoundStudentCount,
+    int CourseStudentCount,
+    IReadOnlyList<ClassmateDto> Classmates);
+
+public record ClassmateDto(
+    Guid UserId,
+    string DisplayName,
+    string? Email,
+    int Level,
+    int TotalXp);
 
 public record CourseRoomWeekDto(
     Guid SessionInstanceId,

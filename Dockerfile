@@ -34,14 +34,14 @@ COPY --from=build /app/publish .
 RUN chown -R appuser:appgroup /app
 USER appuser
 
-# Render sets PORT env var — ASP.NET reads ASPNETCORE_URLS
+# Monster sets PORT env var — ASP.NET reads ASPNETCORE_URLS
 ENV ASPNETCORE_URLS=http://+:${PORT:-8080}
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-# Expose the port Render will route traffic to
+# Expose the port Monster will route traffic to
 EXPOSE 8080
 
-# Health-check so Render knows the container is alive
+# Health-check so Monster knows the container is alive
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8080}/health || exit 1
 

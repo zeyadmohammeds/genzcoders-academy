@@ -61,6 +61,28 @@ public static class AcademySeeder
             await userManager.UpdateAsync(specUser);
         }
 
+        var scratchCourse = await db.Courses.FirstOrDefaultAsync(x => x.Slug == "scratch");
+        if (scratchCourse != null && scratchCourse.Id != new Guid("a1111111-1111-1111-1111-111111111111"))
+        {
+            db.XpTransactions.RemoveRange(db.XpTransactions);
+            db.TaskSubmissions.RemoveRange(db.TaskSubmissions);
+            db.QuizAttempts.RemoveRange(db.QuizAttempts);
+            db.Questions.RemoveRange(db.Questions);
+            db.Quizzes.RemoveRange(db.Quizzes);
+            db.LearningTasks.RemoveRange(db.LearningTasks);
+            db.CourseMaterials.RemoveRange(db.CourseMaterials);
+            db.SessionInstances.RemoveRange(db.SessionInstances);
+            db.AttendanceRecords.RemoveRange(db.AttendanceRecords);
+            db.CohortEnrollments.RemoveRange(db.CohortEnrollments);
+            db.Enrollments.RemoveRange(db.Enrollments);
+            db.Cohorts.RemoveRange(db.Cohorts);
+            db.CourseSessions.RemoveRange(db.CourseSessions);
+            db.CourseApplicationQuestions.RemoveRange(db.CourseApplicationQuestions);
+            db.CourseApplications.RemoveRange(db.CourseApplications);
+            db.Courses.RemoveRange(db.Courses);
+            await db.SaveChangesAsync();
+        }
+
         if (!await db.Courses.AnyAsync())
         {
             var courses = new[]
@@ -556,17 +578,18 @@ public static class AcademySeeder
 
     private static Course Course(string slug, string title, string description, string outcome, int age, decimal price, string level, string skillsJson)
     {
-        var (icon, color, subtitle) = slug switch
+        var (icon, color, subtitle, idStr) = slug switch
         {
-            "scratch" => ("🎮", "#7C3AED", "Ages 10–13 · Beginner"),
-            "intro-cpp" => ("💻", "#3B82F6", "Ages 13+ · Foundations"),
-            "advanced-cpp" => ("⚡", "#EF4444", "Ages 15+ · Advanced"),
-            "robot-build" => ("🤖", "#F59E0B", "Ages 12–17 · Maker"),
-            "web-app-ai" => ("🌐", "#10B981", "Ages 13+ · Creator"),
-            _ => ("📘", "#6366F1", "")
+            "scratch" => ("scratch", "#7C3AED", "Ages 10–13 · Beginner", "a1111111-1111-1111-1111-111111111111"),
+            "intro-cpp" => ("code", "#3B82F6", "Ages 13+ · Foundations", "b2222222-2222-2222-2222-222222222222"),
+            "advanced-cpp" => ("lightning", "#EF4444", "Ages 15+ · Advanced", "c3333333-3333-3333-3333-333333333333"),
+            "robot-build" => ("robot", "#F59E0B", "Ages 12–17 · Maker", "d4444444-4444-4444-4444-444444444444"),
+            "web-app-ai" => ("globe", "#10B981", "Ages 13+ · Creator", "e5555555-5555-5555-5555-555555555555"),
+            _ => ("book", "#6366F1", "", "f6666666-6666-6666-6666-666666666666")
         };
         return new Course
         {
+            Id = new Guid(idStr),
             Slug = slug,
             Title = title,
             Description = description,

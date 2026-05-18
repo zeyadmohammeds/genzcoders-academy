@@ -18,7 +18,7 @@ namespace GenZCoders.Middleware
             {
                 SentrySdk.ConfigureScope(scope =>
                 {
-                    scope.User = new User
+                    scope.User = new SentryUser
                     {
                         Id = context.User.FindFirstValue(ClaimTypes.NameIdentifier),
                         Email = context.User.FindFirstValue(ClaimTypes.Email),

@@ -183,14 +183,50 @@ public class ApplicationService(
             db.Enrollments.Add(enrollment);
         }
 
-        if (application.CohortId.HasValue && !await db.CohortEnrollments.AnyAsync(x => x.CohortId == application.CohortId && x.StudentUserId == application.StudentUserId, cancellationToken))
+        if (application.CohortId.HasValue)
         {
-            db.CohortEnrollments.Add(new CohortEnrollment
+            var cohort = await db.Cohorts
+                .Include(c => c.CohortEnrollments)
+                .Include(c => c.Course)
+                .FirstOrDefaultAsync(c => c.Id == application.CohortId.Value, cancellationToken);
+
+            if (cohort != null)
             {
-                CohortId = application.CohortId.Value,
-                StudentUserId = application.StudentUserId,
-                Enrollment = enrollment
-            });
+                // Check if current round is full
+                if (cohort.MaxStudents > 0 && cohort.CohortEnrollments.Count >= cohort.MaxStudents)
+                {
+                    // Create a new round
+                    var newCohort = new Cohort
+                    {
+                        CourseId = cohort.CourseId,
+                        Name = $"{cohort.Course!.Title} - Round {(await db.Cohorts.CountAsync(c => c.CourseId == cohort.CourseId, cancellationToken)) + 1}",
+                        Slug = $"{cohort.Slug}-overflow-{Guid.NewGuid().ToString("N")[..6]}",
+                        StartDate = cohort.StartDate,
+                        MaxStudents = cohort.MaxStudents,
+                        Status = CohortStatus.Upcoming,
+                        IsEnrollmentOpen = true,
+                        AutoAcceptPaidApplications = cohort.AutoAcceptPaidApplications,
+                        RequireEngineerApproval = cohort.RequireEngineerApproval
+                    };
+                    db.Cohorts.Add(newCohort);
+                    await db.SaveChangesAsync(cancellationToken);
+                    
+                    // Assign application and enrollment to the new round
+                    application.CohortId = newCohort.Id;
+                    enrollment.CohortId = newCohort.Id;
+                    cohort = newCohort;
+                }
+
+                if (!await db.CohortEnrollments.AnyAsync(x => x.CohortId == cohort.Id && x.StudentUserId == application.StudentUserId, cancellationToken))
+                {
+                    db.CohortEnrollments.Add(new CohortEnrollment
+                    {
+                        CohortId = cohort.Id,
+                        StudentUserId = application.StudentUserId,
+                        Enrollment = enrollment
+                    });
+                }
+            }
         }
     }
 
@@ -227,5 +263,5 @@ public class ApplicationService(
     }
 
     private static CourseApplicationDto ToDto(CourseApplication application, string email)
-        => new(application.Id, application.CourseId, application.CohortId, email, application.Status, application.QuestionsPassed, application.PaymentUnlocked, application.PaymentCompleted, application.ReviewDecision, application.ApplicationScore);
+        => new(application.Id, application.CourseId, application.CohortId, email, application.Status, application.QuestionsPassed, application.PaymentUnlocked, application.PaymentCompleted, application.PaymentReceiptUrl, application.PaymentMethod, application.PaymentReceiptPendingReview, application.ReviewDecision, application.ApplicationScore);
 }

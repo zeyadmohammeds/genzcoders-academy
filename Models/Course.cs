@@ -23,6 +23,8 @@ public class Course
     public string Level { get; set; } = "Phase 1";
     public bool IsActive { get; set; } = true;
     public bool IsFeatured { get; set; } = true;
+    public bool IsDeleted { get; set; } = false;
+    public string? ImageUrl { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     public ICollection<CourseModule> Modules { get; set; } = [];
     public ICollection<CourseSession> CourseSessions { get; set; } = [];

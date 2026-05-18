@@ -40,6 +40,9 @@ public class CourseApplication
     public Guid? ReviewedByUserId { get; set; }
     public ApplicationReviewDecision ReviewDecision { get; set; } = ApplicationReviewDecision.Pending;
     public string? ReviewNotes { get; set; }
+    public string? PaymentReceiptUrl { get; set; }
+    public string? PaymentMethod { get; set; } // e.g., VodafoneCash, Instapay
+    public bool PaymentReceiptPendingReview { get; set; }
     public DateTimeOffset SubmittedAt { get; set; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? PaidAt { get; set; }
     public DateTimeOffset? ReviewedAt { get; set; }

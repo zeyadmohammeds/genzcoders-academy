@@ -63,15 +63,146 @@ public class ApplicationsController(IApplicationService applications, AcademyDbC
     public async Task<IActionResult> MarkPaid(Guid applicationId, MarkApplicationPaidRequest request, CancellationToken cancellationToken)
         => Ok(await applications.MarkPaidAsync(applicationId, request, cancellationToken));
 
+    [Authorize(Roles = AcademyRole.Student)]
+    [HttpPost("{applicationId:guid}/payment-receipt")]
+    public async Task<IActionResult> UploadPaymentReceipt(Guid applicationId, [FromBody] UploadPaymentReceiptRequest request, CancellationToken cancellationToken)
+    {
+        var app = await db.CourseApplications.FirstOrDefaultAsync(x => x.Id == applicationId && x.StudentUserId == CurrentUserId(), cancellationToken);
+        if (app is null) return NotFound();
+        if (app.Status != ApplicationStatus.Accepted) return BadRequest("Application must be accepted before payment.");
+
+        app.PaymentReceiptUrl = request.ReceiptUrl;
+        app.PaymentMethod = request.PaymentMethod;
+        app.PaymentReceiptPendingReview = true;
+        await db.SaveChangesAsync(cancellationToken);
+        return Ok(new { success = true });
+    }
+
+    [Authorize(Policy = "CourseManagers")]
+    [HttpPost("{applicationId:guid}/approve-payment")]
+    public async Task<IActionResult> ApprovePaymentReceipt(Guid applicationId, CancellationToken cancellationToken)
+    {
+        var app = await db.CourseApplications.FirstOrDefaultAsync(x => x.Id == applicationId, cancellationToken);
+        if (app is null) return NotFound();
+        if (!app.PaymentReceiptPendingReview) return BadRequest("No pending payment receipt.");
+
+        app.PaymentReceiptPendingReview = false;
+        app.PaymentCompleted = true;
+        app.PaidAt = DateTimeOffset.UtcNow;
+        app.Status = ApplicationStatus.Paid;
+        
+        // Also enroll the student in the cohort
+        if (app.CohortId.HasValue)
+        {
+            var existingEnrollment = await db.CohortEnrollments
+                .FirstOrDefaultAsync(e => e.CohortId == app.CohortId.Value && e.StudentUserId == app.StudentUserId, cancellationToken);
+            if (existingEnrollment is null)
+            {
+                var enrollment = new CohortEnrollment
+                {
+                    CohortId = app.CohortId.Value,
+                    StudentUserId = app.StudentUserId,
+                    EnrolledAt = DateTimeOffset.UtcNow,
+                };
+                db.CohortEnrollments.Add(enrollment);
+            }
+        }
+
+        await db.SaveChangesAsync(cancellationToken);
+        return Ok(new { success = true });
+    }
+
     [Authorize(Policy = "CourseManagers")]
     [HttpPost("{applicationId:guid}/review")]
     public async Task<IActionResult> Review(Guid applicationId, ApplicationReviewRequest request, CancellationToken cancellationToken)
         => Ok(await applications.ReviewAsync(applicationId, CurrentUserId(), request, cancellationToken));
 
     [Authorize(Policy = "CourseManagers")]
+    [HttpGet("{applicationId:guid}")]
+    public async Task<IActionResult> GetApplicationDetails(Guid applicationId, CancellationToken cancellationToken)
+    {
+        var app = await db.CourseApplications
+            .AsNoTracking()
+            .Include(x => x.StudentUser)
+            .Include(x => x.Course)
+            .Include(x => x.Cohort)
+            .Include(x => x.EnrollmentOrder)
+                .ThenInclude(x => x.PromoCode)
+            .Include(x => x.Answers)
+                .ThenInclude(ans => ans.Question)
+            .FirstOrDefaultAsync(x => x.Id == applicationId, cancellationToken);
+
+        if (app is null) return NotFound();
+
+        var price = app.Course?.PriceEgp ?? 0;
+        var orderAmount = app.EnrollmentOrder?.TotalAmountEgp;
+        var subtotal = app.EnrollmentOrder?.SubtotalEgp;
+        var discount = app.EnrollmentOrder?.DiscountAmountEgp;
+
+        return Ok(new
+        {
+            app.Id,
+            app.CourseId,
+            CourseTitle = app.Course?.Title ?? "",
+            CoursePriceEgp = price,
+            AmountPaid = orderAmount,
+            SubtotalEgp = subtotal,
+            DiscountEgp = discount > 0 ? discount : (decimal?)null,
+            DiscountReason = app.EnrollmentOrder?.DiscountReason,
+            PromoCode = app.EnrollmentOrder?.PromoCode?.Code,
+            PaymentReference = app.EnrollmentOrder?.PaymentReference,
+            RoundName = app.Cohort?.Name ?? "",
+            StudentName = app.StudentUser == null ? "" : app.StudentUser.FirstName + " " + app.StudentUser.LastName,
+            StudentEmail = app.StudentUser?.Email ?? "",
+            app.QuestionsPassed,
+            app.PaymentUnlocked,
+            app.PaymentCompleted,
+            app.PaymentReceiptUrl,
+            app.PaymentMethod,
+            app.PaymentReceiptPendingReview,
+            app.ApplicationScore,
+            Status = app.Status.ToString(),
+            SubmittedAt = app.SubmittedAt.ToString("yyyy-MM-dd HH:mm"),
+            Answers = app.Answers.OrderBy(ans => ans.Question != null ? ans.Question.SortOrder : 0).Select(ans => new
+            {
+                ans.Id,
+                QuestionText = ans.Question != null ? ans.Question.QuestionText : "",
+                QuestionType = ans.Question != null ? ans.Question.QuestionType.ToString() : "",
+                OptionsJson = ans.Question != null ? ans.Question.OptionsJson : "[]",
+                ans.AnswerText,
+                ans.IsCorrect
+            }).ToList()
+        });
+    }
+
+    [Authorize(Policy = "CourseManagers")]
     [HttpGet("pending")]
     public async Task<IActionResult> Pending(CancellationToken cancellationToken)
         => Ok(await applications.PendingAsync(cancellationToken));
+
+    [Authorize(Policy = "CourseManagers")]
+    [HttpGet("pending-payments")]
+    public async Task<IActionResult> PendingPayments(CancellationToken cancellationToken)
+    {
+        var apps = await db.CourseApplications
+            .AsNoTracking()
+            .Where(x => x.PaymentReceiptPendingReview)
+            .Include(x => x.StudentUser)
+            .Include(x => x.Course)
+            .Select(x => new
+            {
+                x.Id,
+                x.CourseId,
+                CourseTitle = x.Course!.Title,
+                StudentName = x.StudentUser!.FirstName + " " + x.StudentUser.LastName,
+                StudentEmail = x.StudentUser.Email,
+                x.PaymentMethod,
+                x.PaymentReceiptUrl,
+                SubmittedAt = x.SubmittedAt.ToString("yyyy-MM-dd HH:mm")
+            })
+            .ToListAsync(cancellationToken);
+        return Ok(apps);
+    }
 
     [Authorize]
     [HttpGet("my")]

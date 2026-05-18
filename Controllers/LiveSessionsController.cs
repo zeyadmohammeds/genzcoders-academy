@@ -20,7 +20,7 @@ public class LiveSessionsController(ILiveSessionService liveSessionService, ICon
         => Ok(new
         {
             sessionId = id,
-            sdkKey = configuration["Zoom:SdkKey"],
+            sdkKey = configuration["Zoom:MeetingSdkClientId"] ?? configuration["Zoom:SdkKey"],
             signatureEndpoint = "/api/live-sessions/zoom-signature",
             leaveUrl = Url.Content("~/live.html")
         });
@@ -29,13 +29,13 @@ public class LiveSessionsController(ILiveSessionService liveSessionService, ICon
     [HttpPost("zoom-signature")]
     public IActionResult ZoomSignature([FromBody] ZoomSignatureRequest request)
     {
-        var sdkKey = configuration["Zoom:SdkKey"];
-        var sdkSecret = configuration["Zoom:SdkSecret"];
+        var sdkKey = configuration["Zoom:MeetingSdkClientId"] ?? configuration["Zoom:SdkKey"];
+        var sdkSecret = configuration["Zoom:MeetingSdkClientSecret"] ?? configuration["Zoom:SdkSecret"];
         if (string.IsNullOrWhiteSpace(sdkKey) || string.IsNullOrWhiteSpace(sdkSecret))
         {
             return StatusCode(StatusCodes.Status503ServiceUnavailable, new
             {
-                message = "Zoom Meeting SDK is not configured. Add Zoom:SdkKey and Zoom:SdkSecret to appsettings (from your Zoom Marketplace SDK app)."
+                message = "Zoom Meeting SDK is not configured. Add Zoom:MeetingSdkClientId and Zoom:MeetingSdkClientSecret to appsettings."
             });
         }
 

@@ -11,7 +11,7 @@ public class CourseService(IRepository<Course> courses) : ICourseService
     {
         var featured = await courses.Query()
             .AsNoTracking()
-            .Where(x => x.IsFeatured)
+            .Where(x => x.IsActive && !x.IsDeleted)
             .Include(x => x.Modules.OrderBy(m => m.SortOrder))
             .OrderBy(x => x.PriceEgp)
             .ToListAsync(cancellationToken);
@@ -24,7 +24,7 @@ public class CourseService(IRepository<Course> courses) : ICourseService
         var course = await courses.Query()
             .AsNoTracking()
             .Include(x => x.Modules.OrderBy(m => m.SortOrder))
-            .Where(x => x.Slug == slug)
+            .Where(x => x.Slug == slug && x.IsActive && !x.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 
         return course is null ? null : ToDto(course);
@@ -41,6 +41,8 @@ public class CourseService(IRepository<Course> courses) : ICourseService
         course.CoreSessions,
         course.SupportSessions,
         course.Level,
+        course.CoverImageUrl,
+        course.ImageUrl,
         course.Modules.OrderBy(x => x.SortOrder)
             .Select(x => new CourseModuleDto(x.SortOrder, x.Title, x.ProjectOutcome))
             .ToList());

@@ -16,9 +16,12 @@ public class CourseRoomService(AcademyDbContext db) : ICourseRoomService
             .FirstOrDefaultAsync(x => x.Id == courseRoundId, cancellationToken)
             ?? throw new InvalidOperationException("Course round not found.");
 
-        var accepted = await db.CourseApplications.AnyAsync(x => x.CohortId == courseRoundId && x.StudentUserId == studentUserId && x.Status == ApplicationStatus.Accepted, cancellationToken);
-        var enrolled = await db.CohortEnrollments.AnyAsync(x => x.CohortId == courseRoundId && x.StudentUserId == studentUserId, cancellationToken);
-        var access = accepted || enrolled ? CourseAccessStatus.Open : CourseAccessStatus.PendingApproval;
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == studentUserId, cancellationToken);
+        var isAdminStaff = user != null && (user.RoleKey == AcademyRole.AcademyAdmin || user.RoleKey == AcademyRole.Engineer || user.RoleKey == AcademyRole.Cta);
+
+        var accepted = isAdminStaff || await db.CourseApplications.AnyAsync(x => x.CohortId == courseRoundId && x.StudentUserId == studentUserId && x.Status == ApplicationStatus.Accepted, cancellationToken);
+        var enrolled = isAdminStaff || await db.CohortEnrollments.AnyAsync(x => x.CohortId == courseRoundId && x.StudentUserId == studentUserId, cancellationToken);
+        var access = isAdminStaff || accepted || enrolled ? CourseAccessStatus.Open : CourseAccessStatus.PendingApproval;
 
         var weeks = access == CourseAccessStatus.Open
             ? await db.SessionInstances.AsNoTracking()
@@ -58,6 +61,22 @@ public class CourseRoomService(AcademyDbContext db) : ICourseRoomService
                 .ToListAsync(cancellationToken)
             : [];
 
+        var roundStudentCount = await db.CohortEnrollments.CountAsync(x => x.CohortId == courseRoundId, cancellationToken);
+        var courseStudentCount = await db.CohortEnrollments.CountAsync(x => x.Cohort!.CourseId == round.CourseId, cancellationToken);
+
+        var classmatesList = await db.CohortEnrollments
+            .AsNoTracking()
+            .Where(x => x.CohortId == courseRoundId)
+            .Join(db.Users, ce => ce.StudentUserId, u => u.Id, (ce, u) => new { ce, u })
+            .Join(db.StudentProfiles, combined => combined.u.Id, sp => sp.UserId, (combined, sp) => new ClassmateDto(
+                combined.u.Id,
+                (combined.u.FirstName + " " + combined.u.LastName).Trim(),
+                combined.u.Email,
+                sp.Level,
+                sp.TotalXp
+            ))
+            .ToListAsync(cancellationToken);
+
         return new CourseRoomDto(
             round.CourseId,
             round.Id,
@@ -71,7 +90,10 @@ public class CourseRoomService(AcademyDbContext db) : ICourseRoomService
             new CourseProgressDto(xp, attendance, taskCount, quizzes, completion),
             round.ZoomMeetingId,
             round.ZoomJoinUrl,
-            null);
+            null,
+            roundStudentCount,
+            courseStudentCount,
+            classmatesList);
     }
 
     public async Task<IReadOnlyList<LeaderboardEntryDto>> LeaderboardAsync(Guid? courseRoundId = null, Guid? courseId = null, CancellationToken cancellationToken = default)

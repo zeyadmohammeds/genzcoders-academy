@@ -1,0 +1,8 @@
+wwwroot\index.html
+wwwroot\live.html
+wwwroot\site.js
+wwwroot\styles.css
+D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\wwwroot\index.html
+D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\wwwroot\live.html
+D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\wwwroot\site.js
+D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\wwwroot\styles.css

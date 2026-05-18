@@ -34,7 +34,7 @@ public class CartService(AcademyDbContext db, IReferralService referrals) : ICar
     public async Task<CartDto> AddBundleAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var cart = await GetOrCreateCartAsync(userId, cancellationToken);
-        var courses = await db.Courses.Where(x => x.IsActive && x.IsFeatured).ToListAsync(cancellationToken);
+        var courses = await db.Courses.Where(x => x.IsActive && !x.IsDeleted).ToListAsync(cancellationToken);
         foreach (var course in courses)
         {
             if (cart.Items.All(x => x.CourseId != course.Id))
@@ -201,5 +201,5 @@ public class CartService(AcademyDbContext db, IReferralService referrals) : ICar
 
     private static CartDto ToDto(ShoppingCart cart)
         => new(cart.Id, cart.SubtotalEgp, cart.DiscountAmountEgp, cart.TotalEgp, cart.DiscountSummary,
-            cart.Items.Select(x => new CartItemDto(x.Id, x.CourseId, x.Course?.Title ?? string.Empty, x.CohortId, x.UnitPriceEgp, x.DiscountAmountEgp, x.FinalPriceEgp, x.IsBundleItem)).ToList());
+            cart.Items.Select(x => new CartItemDto(x.Id, x.CourseId, x.Course?.Title ?? string.Empty, x.CohortId, x.UnitPriceEgp, x.DiscountAmountEgp, x.FinalPriceEgp, x.IsBundleItem, x.Course?.CoverImageUrl ?? x.Course?.ImageUrl)).ToList());
 }

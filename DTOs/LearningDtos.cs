@@ -96,4 +96,8 @@ public record StudentSessionDto(
     string? InstructorName,
     string? RecordingUrl,
     string? ZoomJoinUrl,
-    bool IsUpcoming);
+    bool IsUpcoming,
+    Guid? CourseId,
+    string? CourseTitle,
+    string? CourseSlug,
+    Guid? RoundId);

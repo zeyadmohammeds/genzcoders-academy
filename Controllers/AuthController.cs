@@ -18,6 +18,7 @@ public class AuthController(
     IAuthWorkflowService authWorkflow,
     SignInManager<ApplicationUser> signInManager,
     UserManager<ApplicationUser> userManager,
+    RoleManager<ApplicationRole> roleManager,
     IConfiguration configuration,
     IAuthenticationSchemeProvider schemeProvider,
     AcademyDbContext db) : ControllerBase
@@ -68,45 +69,46 @@ public class AuthController(
         var email = "admin@genz.academy";
         var password = "Academy123!";
         
-        // First delete user roles and related data using raw SQL
-        var existing = await userManager.FindByEmailAsync(email);
-        if (existing != null)
+        var admin = await userManager.FindByEmailAsync(email);
+        if (admin is null)
         {
-            // Delete user claims first
-            var userId = existing.Id.ToString();
-            await db.Database.ExecuteSqlRawAsync($"DELETE FROM [AspNetUserClaims] WHERE [UserId] = '{userId}'");
-            await db.Database.ExecuteSqlRawAsync($"DELETE FROM [AspNetUserLogins] WHERE [UserId] = '{userId}'");
-            await db.Database.ExecuteSqlRawAsync($"DELETE FROM [AspNetUserRoles] WHERE [UserId] = '{userId}'");
-            await db.Database.ExecuteSqlRawAsync($"DELETE FROM [AspNetUserTokens] WHERE [UserId] = '{userId}'");
+            admin = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true,
+                FirstName = "Super",
+                LastName = "Admin",
+                RoleKey = AcademyRole.AcademyAdmin,
+                IsActive = true
+            };
+            var createResult = await userManager.CreateAsync(admin, password);
+            if (!createResult.Succeeded)
+            {
+                return BadRequest(new { success = false, errors = createResult.Errors.Select(e => e.Description).ToList() });
+            }
+        }
+        else
+        {
+            admin.IsActive = true;
+            admin.RoleKey = AcademyRole.AcademyAdmin;
+            await userManager.UpdateAsync(admin);
             
-            // Delete the user
-            await userManager.DeleteAsync(existing);
+            var token = await userManager.GeneratePasswordResetTokenAsync(admin);
+            await userManager.ResetPasswordAsync(admin, token, password);
         }
         
-        // Create fresh user
-        var admin = new ApplicationUser
+        // Ensure role exists and user is in role
+        if (!await roleManager.RoleExistsAsync(AcademyRole.AcademyAdmin))
         {
-            UserName = email,
-            Email = email,
-            EmailConfirmed = true,
-            FirstName = "Super",
-            LastName = "Admin",
-            RoleKey = AcademyRole.AcademyAdmin,
-            IsActive = true
-        };
-        
-        var result = await userManager.CreateAsync(admin, password);
-        
-        if (result.Succeeded)
+            await roleManager.CreateAsync(new ApplicationRole { Name = AcademyRole.AcademyAdmin });
+        }
+        if (!await userManager.IsInRoleAsync(admin, AcademyRole.AcademyAdmin))
         {
             await userManager.AddToRoleAsync(admin, AcademyRole.AcademyAdmin);
-            return Ok(new { success = true, message = "Admin user created successfully" });
         }
         
-        return BadRequest(new { 
-            success = false, 
-            errors = result.Errors.Select(e => e.Description).ToList() 
-        });
+        return Ok(new { success = true, message = "Admin user ready" });
     }
 
     [HttpGet("debug/admin-status")]
@@ -152,54 +154,72 @@ public class AuthController(
     [HttpGet("google-callback")]
     public async Task<IActionResult> GoogleCallback(string? returnUrl = "/")
     {
-        var info = await signInManager.GetExternalLoginInfoAsync();
-        if (info is null) return BadRequest("Google sign-in failed.");
-
-        var signIn = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: true);
-        string frontendUrl = "http://localhost:3000";
-        string destination = string.Empty;
-
-        if (signIn.Succeeded)
+        try
         {
-            var existingUser = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-            if (existingUser != null)
+            var info = await signInManager.GetExternalLoginInfoAsync();
+            if (info is null) return BadRequest("Google sign-in failed (missing cookie).");
+
+            var signIn = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: true);
+            string frontendUrl = configuration["Frontend:Url"]?.TrimEnd('/') ?? "http://localhost:3000";
+            string destination = string.Empty;
+
+            if (signIn.Succeeded)
             {
-                destination = GetDestination(existingUser);
+                var existingUser = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                if (existingUser != null)
+                {
+                    destination = GetDestination(existingUser);
+                    return Redirect($"{frontendUrl}{destination}");
+                }
             }
-            else
+
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrWhiteSpace(email)) return BadRequest("Google did not return an email address.");
+
+            var user = await userManager.FindByEmailAsync(email);
+            bool isNewUser = false;
+            
+            if (user is null)
             {
-                destination = "/dashboard";
+                isNewUser = true;
+                user = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName) ?? "GenZ",
+                    LastName = info.Principal.FindFirstValue(ClaimTypes.Surname) ?? "Coder",
+                    EmailConfirmed = true,
+                    VerifiedAt = DateTimeOffset.UtcNow,
+                    ProfileCompleted = false,
+                    RoleKey = AcademyRole.Student
+                };
+
+                var create = await userManager.CreateAsync(user);
+                if (!create.Succeeded) 
+                {
+                    SentrySdk.CaptureMessage($"User creation failed: {string.Join(", ", create.Errors.Select(e => e.Description))}");
+                    return BadRequest(create.Errors);
+                }
+                
+                // Ensure role exists to prevent 500
+                if (!await roleManager.RoleExistsAsync(AcademyRole.Student))
+                {
+                    await roleManager.CreateAsync(new ApplicationRole { Name = AcademyRole.Student });
+                }
+                await userManager.AddToRoleAsync(user, AcademyRole.Student);
             }
+
+            await userManager.AddLoginAsync(user, info);
+            await signInManager.SignInAsync(user, isPersistent: true);
+            
+            destination = isNewUser ? "/onboarding" : GetDestination(user);
             return Redirect($"{frontendUrl}{destination}");
         }
-
-        var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-        if (string.IsNullOrWhiteSpace(email)) return BadRequest("Google did not return an email address.");
-
-        var user = await userManager.FindByEmailAsync(email);
-        if (user is null)
+        catch (Exception ex)
         {
-            user = new ApplicationUser
-            {
-                UserName = email,
-                Email = email,
-                FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName) ?? "GenZ",
-                LastName = info.Principal.FindFirstValue(ClaimTypes.Surname) ?? "Coder",
-                EmailConfirmed = true,
-                VerifiedAt = DateTimeOffset.UtcNow,
-                ProfileCompleted = false
-            };
-
-            var create = await userManager.CreateAsync(user);
-            if (!create.Succeeded) return BadRequest(create.Errors);
-            await userManager.AddToRoleAsync(user, "student");
+            SentrySdk.CaptureException(ex);
+            return StatusCode(500, new { message = "Critical failure in Google callback", error = ex.Message, stack = ex.StackTrace });
         }
-
-        await userManager.AddLoginAsync(user, info);
-        await signInManager.SignInAsync(user, isPersistent: true);
-        
-        destination = GetDestination(user);
-        return Redirect($"{frontendUrl}{destination}");
     }
 
     private string GetDestination(ApplicationUser user)

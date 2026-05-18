@@ -1,0 +1,1999 @@
+[
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetAnalytics",
+    "RelativePath": "api/admin/analytics",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetAllApplications",
+    "RelativePath": "api/admin/applications",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "status",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "UpdateApplicationStatus",
+    "RelativePath": "api/admin/applications/{applicationId}/status",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "applicationId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.AdminUpdateStatusRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "PendingApplications",
+    "RelativePath": "api/admin/applications/pending",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "CreateCourseSession",
+    "RelativePath": "api/admin/course-sessions",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.AdminCourseSessionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetCourseSessions",
+    "RelativePath": "api/admin/course-sessions/{courseId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "UpdateCourseSession",
+    "RelativePath": "api/admin/course-sessions/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.AdminCourseSessionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "DeleteCourseSession",
+    "RelativePath": "api/admin/course-sessions/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetCourses",
+    "RelativePath": "api/admin/courses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "CreateCourse",
+    "RelativePath": "api/admin/courses",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.AdminCourseCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetCourse",
+    "RelativePath": "api/admin/courses/{courseId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetCourseMaterials",
+    "RelativePath": "api/admin/courses/{courseId}/materials",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "UploadCourseMaterial",
+    "RelativePath": "api/admin/courses/{courseId}/materials",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.AdminMaterialUploadRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "UpdateCourse",
+    "RelativePath": "api/admin/courses/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.AdminCourseCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "ArchiveCourse",
+    "RelativePath": "api/admin/courses/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "Dashboard",
+    "RelativePath": "api/admin/dashboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetEnrollments",
+    "RelativePath": "api/admin/enrollments",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "CreateEnrollment",
+    "RelativePath": "api/admin/enrollments",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.AdminCreateEnrollmentRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "FixDb",
+    "RelativePath": "api/admin/fix-db",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "DeleteCourseMaterial",
+    "RelativePath": "api/admin/materials/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "Broadcast",
+    "RelativePath": "api/admin/notifications/broadcast",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.AdminBroadcastRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetQuestions",
+    "RelativePath": "api/admin/questions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "DeleteQuestion",
+    "RelativePath": "api/admin/questions/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "DeleteQuiz",
+    "RelativePath": "api/admin/quizzes/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetRounds",
+    "RelativePath": "api/admin/rounds",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "CreateRound",
+    "RelativePath": "api/admin/rounds",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.AdminRoundCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "NotifyRoundStudents",
+    "RelativePath": "api/admin/rounds/{cohortId}/notify",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "cohortId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.AdminBroadcastRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetRoundQuizzes",
+    "RelativePath": "api/admin/rounds/{cohortId}/quizzes",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "cohortId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetRoundStudents",
+    "RelativePath": "api/admin/rounds/{cohortId}/students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "cohortId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetRoundTasks",
+    "RelativePath": "api/admin/rounds/{cohortId}/tasks",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "cohortId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "CreateRoundWeek",
+    "RelativePath": "api/admin/rounds/{cohortId}/weeks",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "cohortId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.UpdateRoundWeekRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetRoundWeeks",
+    "RelativePath": "api/admin/rounds/{cohortId}/weeks",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "cohortId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "DeleteRoundWeek",
+    "RelativePath": "api/admin/rounds/{cohortId}/weeks/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "cohortId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "UpdateRound",
+    "RelativePath": "api/admin/rounds/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.AdminRoundUpdateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "DeleteRound",
+    "RelativePath": "api/admin/rounds/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "UpdateRoundZoom",
+    "RelativePath": "api/admin/rounds/{id}/zoom",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.AdminRoundZoomRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GenerateRoundZoom",
+    "RelativePath": "api/admin/rounds/{id}/zoom-generate",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetRound",
+    "RelativePath": "api/admin/rounds/{idOrSlug}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idOrSlug",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "UpdateRoundWeek",
+    "RelativePath": "api/admin/rounds/weeks/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.UpdateRoundWeekRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetSessions",
+    "RelativePath": "api/admin/sessions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "UpdateSessionInstance",
+    "RelativePath": "api/admin/sessions/{id}",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.AdminSessionInstanceRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "GetStudents",
+    "RelativePath": "api/admin/students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "search",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminController",
+    "Method": "DeleteLearningTask",
+    "RelativePath": "api/admin/tasks/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminUsersController",
+    "Method": "List",
+    "RelativePath": "api/admin/users",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "role",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminUsersController",
+    "Method": "UpdateRole",
+    "RelativePath": "api/admin/users/{id}/role",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.UpdateUserRoleRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminUsersController",
+    "Method": "ToggleActive",
+    "RelativePath": "api/admin/users/{id}/toggle-active",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AdminUsersController",
+    "Method": "Create",
+    "RelativePath": "api/admin/users/create",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.CreateUserRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "Submit",
+    "RelativePath": "api/applications",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.SubmitCourseApplicationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "GetApplicationDetails",
+    "RelativePath": "api/applications/{applicationId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "applicationId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "ApprovePaymentReceipt",
+    "RelativePath": "api/applications/{applicationId}/approve-payment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "applicationId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "MarkPaid",
+    "RelativePath": "api/applications/{applicationId}/payment",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "applicationId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.MarkApplicationPaidRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "UploadPaymentReceipt",
+    "RelativePath": "api/applications/{applicationId}/payment-receipt",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "applicationId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.UploadPaymentReceiptRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "Review",
+    "RelativePath": "api/applications/{applicationId}/review",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "applicationId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.ApplicationReviewRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "My",
+    "RelativePath": "api/applications/my",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "Pending",
+    "RelativePath": "api/applications/pending",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "PendingPayments",
+    "RelativePath": "api/applications/pending-payments",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "Questions",
+    "RelativePath": "api/applications/questions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Guid",
+        "IsRequired": false
+      },
+      {
+        "Name": "courseRoundId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ApplicationsController",
+    "Method": "AddQuestion",
+    "RelativePath": "api/applications/questions",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.ApplicationQuestionCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "GetAdminStatus",
+    "RelativePath": "api/auth/debug/admin-status",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "ForceCreateAdmin",
+    "RelativePath": "api/auth/debug/force-create-admin",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "DebugUsers",
+    "RelativePath": "api/auth/debug/users",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "RequestVerification",
+    "RelativePath": "api/auth/email/request-verification",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.RequestEmailVerificationRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "VerifyLink",
+    "RelativePath": "api/auth/email/verify-link",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.VerifyEmailLinkRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "VerifyOtp",
+    "RelativePath": "api/auth/email/verify-otp",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.VerifyEmailOtpRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "Google",
+    "RelativePath": "api/auth/google",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "returnUrl",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "GoogleCallback",
+    "RelativePath": "api/auth/google-callback",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "returnUrl",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "Login",
+    "RelativePath": "api/auth/login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.LoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "Logout",
+    "RelativePath": "api/auth/logout",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "Me",
+    "RelativePath": "api/auth/me",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "Onboarding",
+    "RelativePath": "api/auth/onboarding",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.OnboardingRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "Register",
+    "RelativePath": "api/auth/register",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.RegisterRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.BackendMapController",
+    "Method": "Get",
+    "RelativePath": "api/backend-map",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CartController",
+    "Method": "Get",
+    "RelativePath": "api/cart",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CartController",
+    "Method": "AddBundle",
+    "RelativePath": "api/cart/bundle",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CartController",
+    "Method": "Checkout",
+    "RelativePath": "api/cart/checkout",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.CheckoutCartRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CartController",
+    "Method": "AddCourse",
+    "RelativePath": "api/cart/items",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.AddCartItemRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CartController",
+    "Method": "RemoveItem",
+    "RelativePath": "api/cart/items/{itemId}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "itemId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CartController",
+    "Method": "ApplyPromo",
+    "RelativePath": "api/cart/promo",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.ApplyPromoRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CartController",
+    "Method": "ApplyReferral",
+    "RelativePath": "api/cart/referral",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.ApplyReferralRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CourseRoomsController",
+    "Method": "Room",
+    "RelativePath": "api/course-rooms/{courseRoundIdOrSlug}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseRoundIdOrSlug",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CourseRoomsController",
+    "Method": "Leaderboard",
+    "RelativePath": "api/course-rooms/leaderboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseRoundId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "courseId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CourseRoundsController",
+    "Method": "List",
+    "RelativePath": "api/course-rounds",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CourseRoundsController",
+    "Method": "Create",
+    "RelativePath": "api/course-rounds",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.CourseRoundCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CourseRoundsController",
+    "Method": "MoveStudent",
+    "RelativePath": "api/course-rounds/move-student",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.MoveStudentRoundRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CoursesController",
+    "Method": "Get",
+    "RelativePath": "api/courses",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CoursesController",
+    "Method": "GetBySlug",
+    "RelativePath": "api/courses/{slug}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "slug",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.CoursesController",
+    "Method": "GetRecommendations",
+    "RelativePath": "api/courses/recommendations",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.EnrollmentsController",
+    "Method": "Create",
+    "RelativePath": "api/enrollments",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.EnrollmentRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.GamificationController",
+    "Method": "GetMyBadges",
+    "RelativePath": "api/gamification/badges",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.GamificationController",
+    "Method": "CheckAchievements",
+    "RelativePath": "api/gamification/check-achievements",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.GamificationController",
+    "Method": "GetLeaderboard",
+    "RelativePath": "api/gamification/leaderboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "MarkAttendance",
+    "RelativePath": "api/learning/attendance",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.AttendanceMarkRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "MyCertificates",
+    "RelativePath": "api/learning/certificates",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "CTASessions",
+    "RelativePath": "api/learning/cta/sessions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "CTAStudents",
+    "RelativePath": "api/learning/cta/students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "EngineerPendingTasks",
+    "RelativePath": "api/learning/engineer/pending-tasks",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "EngineerSessions",
+    "RelativePath": "api/learning/engineer/sessions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "EngineerStudents",
+    "RelativePath": "api/learning/engineer/students",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "MyEnrollments",
+    "RelativePath": "api/learning/enrollments",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "AddLesson",
+    "RelativePath": "api/learning/lessons",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.LessonCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "AddMaterial",
+    "RelativePath": "api/learning/materials",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.MaterialCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "MyMaterials",
+    "RelativePath": "api/learning/materials",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseId",
+        "Type": "System.Nullable\u00601[[System.Guid, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "Progress",
+    "RelativePath": "api/learning/progress",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "Room",
+    "RelativePath": "api/learning/room/{courseIdOrSlug}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "courseIdOrSlug",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "MySessions",
+    "RelativePath": "api/learning/sessions",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "CreateTask",
+    "RelativePath": "api/learning/tasks",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.TaskCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "MyTasks",
+    "RelativePath": "api/learning/tasks",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "SubmitTask",
+    "RelativePath": "api/learning/tasks/submissions",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.TaskSubmitRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LearningController",
+    "Method": "Grade",
+    "RelativePath": "api/learning/tasks/submissions/{submissionId}/grade",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "submissionId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.GradeSubmissionRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LiveSessionsController",
+    "Method": "EmbedConfig",
+    "RelativePath": "api/live-sessions/{id}/embed-config",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LiveSessionsController",
+    "Method": "Upcoming",
+    "RelativePath": "api/live-sessions/upcoming",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.LiveSessionsController",
+    "Method": "ZoomSignature",
+    "RelativePath": "api/live-sessions/zoom-signature",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.ZoomSignatureRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.NotificationsController",
+    "Method": "List",
+    "RelativePath": "api/notifications",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.NotificationsController",
+    "Method": "MarkRead",
+    "RelativePath": "api/notifications/{id}/read",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.NotificationsController",
+    "Method": "Broadcast",
+    "RelativePath": "api/notifications/broadcast",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.BroadcastRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.NotificationsController",
+    "Method": "MarkAllRead",
+    "RelativePath": "api/notifications/read-all",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.NotificationsController",
+    "Method": "GetSettings",
+    "RelativePath": "api/notifications/settings",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.NotificationsController",
+    "Method": "UpdateSettings",
+    "RelativePath": "api/notifications/settings",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.NotificationSettingsRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.PartnershipsController",
+    "Method": "CreateLead",
+    "RelativePath": "api/partnerships/leads",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.PartnershipLeadRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.PaymentsController",
+    "Method": "Checkout",
+    "RelativePath": "api/payments/application/{applicationId}/checkout",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "applicationId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.PaymentsController",
+    "Method": "PaymobResponse",
+    "RelativePath": "api/payments/paymob-response",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "success",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      },
+      {
+        "Name": "order",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.PaymentsController",
+    "Method": "PaymobWebhook",
+    "RelativePath": "api/payments/paymob-webhook",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "hmac",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "payload",
+        "Type": "System.Object",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.PaymentsController",
+    "Method": "UpdateTransaction",
+    "RelativePath": "api/payments/transactions/{transactionId}/status",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "transactionId",
+        "Type": "System.Guid",
+        "IsRequired": true
+      },
+      {
+        "Name": "status",
+        "Type": "GenZCoders.Models.PaymentStatus",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ProfilesController",
+    "Method": "GetCTADashboard",
+    "RelativePath": "api/profiles/cta/dashboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ProfilesController",
+    "Method": "GetEngineerDashboard",
+    "RelativePath": "api/profiles/engineer/dashboard",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ProfilesController",
+    "Method": "GetMyProfile",
+    "RelativePath": "api/profiles/me",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ProfilesController",
+    "Method": "UpdateProfile",
+    "RelativePath": "api/profiles/me",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.UpdateProfileRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.QuizzesController",
+    "Method": "Create",
+    "RelativePath": "api/quizzes",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.QuizCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.QuizzesController",
+    "Method": "SubmitAttempt",
+    "RelativePath": "api/quizzes/attempts",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.SubmitQuizAttemptRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.QuizzesController",
+    "Method": "AddQuestion",
+    "RelativePath": "api/quizzes/questions",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.QuestionCreateRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.ReferralsController",
+    "Method": "Mine",
+    "RelativePath": "api/referrals/me",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  }
+]

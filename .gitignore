@@ -1,0 +1,7 @@
+build
+bin
+debug
+genzacademy.runasp.net-WebDeploy.publishSettings
+*.publishsettings
+.vs
+*.user

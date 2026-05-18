@@ -14,6 +14,7 @@ public record SubmitCourseApplicationRequest(
 public record ApplicationReviewRequest(bool Accepted, string? Notes);
 
 public record MarkApplicationPaidRequest(string PaymentMethod, string PaymentReference, decimal AmountEgp);
+public record UploadPaymentReceiptRequest(string ReceiptUrl, string PaymentMethod);
 
 public record ApplicationQuestionCreateRequest(
     Guid CourseId,
@@ -47,5 +48,8 @@ public record CourseApplicationDto(
     bool QuestionsPassed,
     bool PaymentUnlocked,
     bool PaymentCompleted,
+    string? PaymentReceiptUrl,
+    string? PaymentMethod,
+    bool PaymentReceiptPendingReview,
     ApplicationReviewDecision ReviewDecision,
     decimal ApplicationScore);
