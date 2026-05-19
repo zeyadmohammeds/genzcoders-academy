@@ -1,5 +1,5 @@
 is_global = true
-build_property._IsPublishing = 
+build_property._IsPublishing = True
 build_property.PublishAot = 
 build_property.PublishTrimmed = 
 build_property.PublishSelfContained = 

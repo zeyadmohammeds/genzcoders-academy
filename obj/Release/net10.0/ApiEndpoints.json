@@ -1090,6 +1090,22 @@
   },
   {
     "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "GoogleMockLogin",
+    "RelativePath": "api/auth/google-mock",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "returnUrl",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
     "Method": "Login",
     "RelativePath": "api/auth/login",
     "HttpMethod": "POST",
@@ -1151,6 +1167,22 @@
       {
         "Name": "request",
         "Type": "GenZCoders.DTOs.RegisterRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "UpdateProfile",
+    "RelativePath": "api/auth/update-profile",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.UpdateProfileRequest",
         "IsRequired": true
       }
     ],

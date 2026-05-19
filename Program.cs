@@ -51,8 +51,17 @@ builder.Services
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.Cookie.Name = "GenZCoders.Auth";
-    options.Cookie.SameSite = SameSiteMode.None; // Required for Vercel + RunASP cross-domain
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Required for SameSite=None
+    if (builder.Environment.IsDevelopment())
+    {
+        // For local development on HTTP, Lax and SameAsRequest allow authentication cookies to work
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    }
+    else
+    {
+        options.Cookie.SameSite = SameSiteMode.None; // Required for Vercel + RunASP cross-domain
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Required for SameSite=None
+    }
     options.LoginPath = "/api/auth/google";
     options.AccessDeniedPath = "/api/auth/access-denied";
     options.SlidingExpiration = true;
@@ -60,8 +69,16 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.ConfigureExternalCookie(options =>
 {
-    options.Cookie.SameSite = SameSiteMode.None;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    if (builder.Environment.IsDevelopment())
+    {
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    }
+    else
+    {
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    }
 });
 
 builder.Services.AddAuthentication()
@@ -206,11 +223,22 @@ using (var scope = app.Services.CreateScope())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCookiePolicy(new CookiePolicyOptions
+if (app.Environment.IsDevelopment())
 {
-    MinimumSameSitePolicy = SameSiteMode.None,
-    Secure = CookieSecurePolicy.Always
-});
+    app.UseCookiePolicy(new CookiePolicyOptions
+    {
+        MinimumSameSitePolicy = SameSiteMode.Lax,
+        Secure = CookieSecurePolicy.SameAsRequest
+    });
+}
+else
+{
+    app.UseCookiePolicy(new CookiePolicyOptions
+    {
+        MinimumSameSitePolicy = SameSiteMode.None,
+        Secure = CookieSecurePolicy.Always
+    });
+}
 app.UseSentryTracing(); // Must be after UseRouting and before UseAuthorization
 app.UseCors("NextJsClient");
 app.UseAuthentication();

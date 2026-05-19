@@ -27,3 +27,5 @@ public record OnboardingRequest(
     bool Skip);
 
 public record UpdateProfileRequest(string? FirstName, string? LastName, string? Bio, string? PhoneNumber, string? InterestsJson);
+
+public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
