@@ -199,7 +199,7 @@ public class AuthController(
             await signInManager.SignInAsync(user, isPersistent: true);
             
             string frontendUrl = GetFrontendUrl(returnUrl);
-            var destination = isNewUser ? "/onboarding" : GetDestination(user);
+            var destination = "/";
             return Redirect($"{frontendUrl}{destination}");
         }
         catch (Exception ex)
@@ -270,7 +270,7 @@ public class AuthController(
             await userManager.AddLoginAsync(user, info);
             await signInManager.SignInAsync(user, isPersistent: true);
             
-            destination = isNewUser ? "/onboarding" : GetDestination(user);
+            destination = "/";
             return Redirect($"{frontendUrl}{destination}");
         }
         catch (Exception ex)
@@ -349,7 +349,7 @@ public class AuthController(
             // Perform internal sign in
             await signInManager.SignInAsync(user, isPersistent: true);
 
-            var destination = isNewUser ? "/onboarding" : GetDestination(user);
+            var destination = "/";
             
             // Return user details + destination redirect
             var authUserDto = await authWorkflow.CurrentUserAsync(user.Id, CancellationToken.None);
@@ -378,16 +378,7 @@ public class AuthController(
     private string GetDestination(ApplicationUser user)
     {
         if (user.RoleKey == AcademyRole.AcademyAdmin) return "/admin";
-        
-        var profile = db.StudentProfiles.FirstOrDefault(p => p.UserId == user.Id);
-        bool onboardingCompleted = user.ProfileCompleted || (profile != null && profile.IsOnboardingCompleted);
-        
-        if (user.RoleKey == AcademyRole.Student && !onboardingCompleted)
-        {
-            return "/onboarding";
-        }
-        
-        return onboardingCompleted ? "/dashboard" : "/onboarding";
+        return "/";
     }
 
     private async Task InitializeStudentAccountAsync(ApplicationUser user)
