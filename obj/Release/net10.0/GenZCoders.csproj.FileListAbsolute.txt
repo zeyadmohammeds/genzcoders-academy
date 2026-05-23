@@ -212,7 +212,6 @@ D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\rjsmcshtml.d
 D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\scopedcss\bundle\GenZCoders.styles.css
 D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\compressed\r42tf7x4ze-{0}-56yqnv50wy-56yqnv50wy.gz
 D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\compressed\ac8ltxnhac-{0}-v2murtgv14-v2murtgv14.gz
-D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\compressed\0k0y5bnpkh-{0}-a896dyzy8j-a896dyzy8j.gz
 D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\compressed\0ee7cupkko-{0}-sbnvp1fxsi-sbnvp1fxsi.gz
 D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\staticwebassets.build.json
 D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\staticwebassets.build.json.cache
@@ -226,3 +225,4 @@ D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\refint\GenZC
 D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\GenZCoders.pdb
 D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\GenZCoders.genruntimeconfig.cache
 D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\ref\GenZCoders.dll
+D:\ElsewdyAcademy\Backend\GenZCoders\GenZCoders\obj\Release\net10.0\compressed\0k0y5bnpkh-{0}-mupnt4gcwt-mupnt4gcwt.gz

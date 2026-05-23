@@ -8,6 +8,7 @@ using GenZCoders.Middleware;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Sentry;
 using System.Text.Json.Serialization;
 using Scalar.AspNetCore;
@@ -90,6 +91,13 @@ builder.Services.AddAuthentication()
         options.SignInScheme = IdentityConstants.ExternalScheme;
     });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+    options.KnownProxies.Clear();
+    options.KnownIPNetworks.Clear();
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("NextJsClient", policy =>
@@ -133,6 +141,8 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<AcademyDbContext>("Database", tags: new[] { "db" });
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
 {
