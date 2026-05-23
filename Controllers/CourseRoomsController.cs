@@ -29,6 +29,24 @@ public class CourseRoomsController(ICourseRoomService rooms, AcademyDbContext db
         return Ok(await rooms.GetRoomAsync(CurrentUserId(), roundId, cancellationToken));
     }
 
+    [Authorize]
+    [HttpGet("{courseRoundIdOrSlug}/quizzes")]
+    public async Task<IActionResult> Quizzes(string courseRoundIdOrSlug, CancellationToken cancellationToken)
+    {
+        Guid roundId;
+        if (Guid.TryParse(courseRoundIdOrSlug, out var id))
+        {
+            roundId = id;
+        }
+        else
+        {
+            var round = await db.Cohorts.AsNoTracking().FirstOrDefaultAsync(x => x.Slug == courseRoundIdOrSlug, cancellationToken);
+            if (round == null) return NotFound(new { message = "Course round not found." });
+            roundId = round.Id;
+        }
+        return Ok(await rooms.GetQuizzesAsync(CurrentUserId(), roundId, cancellationToken));
+    }
+
     [HttpGet("leaderboard")]
     public async Task<IActionResult> Leaderboard([FromQuery] Guid? courseRoundId, [FromQuery] Guid? courseId, CancellationToken cancellationToken)
         => Ok(await rooms.LeaderboardAsync(courseRoundId, courseId, cancellationToken));

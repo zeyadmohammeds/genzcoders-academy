@@ -9,9 +9,12 @@ public record CourseRoomDto(
     string RoundName,
     CourseAccessStatus AccessStatus,
     string? InstructorName,
+    string? InstructorBio,
+    string? InstructorAvatar,
     IReadOnlyList<CourseRoomWeekDto> Weeks,
     IReadOnlyList<CourseMaterialDto> Materials,
     IReadOnlyList<CourseTaskDto> Tasks,
+    IReadOnlyList<QuizItemDto> Quizzes,
     CourseProgressDto Progress,
     string? ZoomMeetingId,
     string? ZoomJoinUrl,
@@ -38,7 +41,21 @@ public record CourseRoomWeekDto(
 
 public record CourseMaterialDto(Guid Id, string Title, CourseMaterialType MaterialType, string Url, bool IsDownloadable);
 
-public record CourseTaskDto(Guid Id, string Title, string Description, string TaskType, string SubmissionType, int MaxScore, int XpReward, bool IsRequired, string? Status, int? Score, string? Feedback);
+public record CourseTaskDto(Guid Id, string Title, string Description, string TaskType, string SubmissionType, int MaxScore, int XpReward, bool IsRequired, string? Status, int? Score, string? Feedback, DateTimeOffset? DueAt);
+
+public record QuizItemDto(
+    Guid Id,
+    Guid? CourseSessionId,
+    Guid? CohortId,
+    string Title,
+    string QuizType,
+    int? TimeLimitMinutes,
+    int MaxAttempts,
+    int PassScore,
+    int XpReward,
+    bool IsPublished,
+    int QuestionsCount
+);
 
 public record CourseProgressDto(int TotalXp, int AttendanceCount, int SubmittedTasks, int CompletedQuizzes, decimal CompletionPercent);
 

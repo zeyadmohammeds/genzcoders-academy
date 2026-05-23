@@ -206,18 +206,56 @@ public class LearningService(AcademyDbContext db, INotificationService notificat
                 .ToListAsync(cancellationToken)
             : new List<ClassmateDto>();
 
-        var tasks = await db.LearningTasks.AsNoTracking()
+        var dbTasks = await db.LearningTasks.AsNoTracking()
             .Where(x => x.CohortId == enrollment.CohortId)
             .OrderBy(x => x.CreatedAt)
-            .Select(x => new CourseTaskDto(
-                x.Id, x.Title, x.Description,
-                x.TaskType.ToString(), x.SubmissionType.ToString(),
-                x.MaxScore, x.XpReward, x.IsRequired,
-                x.Submissions.Where(s => s.StudentUserId == userId).Select(s => s.Status.ToString()).FirstOrDefault(),
-                x.Submissions.Where(s => s.StudentUserId == userId).Select(s => (int?)s.Score).FirstOrDefault(),
-                x.Submissions.Where(s => s.StudentUserId == userId).Select(s => s.Feedback).FirstOrDefault()
-            ))
+            .Select(x => new
+            {
+                x.Id,
+                x.Title,
+                x.Description,
+                TaskType = x.TaskType.ToString(),
+                SubmissionType = x.SubmissionType.ToString(),
+                x.MaxScore,
+                x.XpReward,
+                x.IsRequired,
+                x.DueHoursAfterSession,
+                Status = x.Submissions.Where(s => s.StudentUserId == userId).Select(s => s.Status.ToString()).FirstOrDefault(),
+                Score = x.Submissions.Where(s => s.StudentUserId == userId).Select(s => (int?)s.Score).FirstOrDefault(),
+                Feedback = x.Submissions.Where(s => s.StudentUserId == userId).Select(s => s.Feedback).FirstOrDefault(),
+                SessionScheduledAt = db.SessionInstances
+                    .Where(s => s.CohortId == enrollment.CohortId && s.CourseSessionId == x.CourseSessionId)
+                    .Select(s => (DateTimeOffset?)s.ScheduledAt)
+                    .FirstOrDefault()
+            })
             .ToListAsync(cancellationToken);
+
+        var tasks = dbTasks.Select(x => new CourseTaskDto(
+            x.Id, x.Title, x.Description,
+            x.TaskType, x.SubmissionType,
+            x.MaxScore, x.XpReward, x.IsRequired,
+            x.Status, x.Score, x.Feedback,
+            x.SessionScheduledAt?.AddHours(x.DueHoursAfterSession) ?? x.SessionScheduledAt
+        )).ToList();
+
+        var quizList = enrollment.CohortId.HasValue
+            ? await db.Quizzes.AsNoTracking()
+                .Where(x => x.CohortId == enrollment.CohortId.Value && x.IsPublished)
+                .Select(x => new QuizItemDto(
+                    x.Id,
+                    x.CourseSessionId,
+                    x.CohortId,
+                    x.Title,
+                    x.QuizType.ToString(),
+                    x.TimeLimitMinutes,
+                    x.MaxAttempts,
+                    x.PassScore,
+                    x.XpReward,
+                    x.IsPublished,
+                    x.Questions.Count
+                ))
+                .ToListAsync(cancellationToken)
+            : new List<QuizItemDto>();
 
         return new CourseRoomDto(
             course.Id,
@@ -226,9 +264,12 @@ public class LearningService(AcademyDbContext db, INotificationService notificat
             "Active Cohort",
             CourseAccessStatus.Open,
             "Academy Instructor",
+            "Senior Instructor with extensive industry and teaching experience.",
+            "https://api.dicebear.com/7.x/notionists/svg?seed=Instructor&backgroundColor=f0f0f0",
             lessons,
             materials,
             tasks,
+            quizList,
             new CourseProgressDto(profile?.TotalXp ?? 0, attendanceCount, tasksCount, 0, 0),
             null, null, null,
             roundStudentCount,
@@ -369,17 +410,44 @@ public class LearningService(AcademyDbContext db, INotificationService notificat
     {
         if (cohortIds.Count == 0) return [];
 
-        return await db.LearningTasks.AsNoTracking()
+        var dbTasks = await db.LearningTasks.AsNoTracking()
             .Where(x => x.CohortId != null && cohortIds.Contains(x.CohortId.Value))
             .OrderBy(x => x.CreatedAt)
-            .Select(x => new CourseTaskDto(
-                x.Id, x.Title, x.Description,
-                x.TaskType.ToString(), x.SubmissionType.ToString(),
-                x.MaxScore, x.XpReward, x.IsRequired,
-                x.Submissions.Where(s => s.StudentUserId == userId).Select(s => s.Status.ToString()).FirstOrDefault(),
-                x.Submissions.Where(s => s.StudentUserId == userId).Select(s => (int?)s.Score).FirstOrDefault(),
-                x.Submissions.Where(s => s.StudentUserId == userId).Select(s => s.Feedback).FirstOrDefault()
-            ))
+            .Select(x => new
+            {
+                x.Id,
+                x.Title,
+                x.Description,
+                TaskType = x.TaskType.ToString(),
+                SubmissionType = x.SubmissionType.ToString(),
+                x.MaxScore,
+                x.XpReward,
+                x.IsRequired,
+                x.DueHoursAfterSession,
+                x.CohortId,
+                x.CourseSessionId,
+                Status = x.Submissions.Where(s => s.StudentUserId == userId).Select(s => s.Status.ToString()).FirstOrDefault(),
+                Score = x.Submissions.Where(s => s.StudentUserId == userId).Select(s => (int?)s.Score).FirstOrDefault(),
+                Feedback = x.Submissions.Where(s => s.StudentUserId == userId).Select(s => s.Feedback).FirstOrDefault()
+            })
             .ToListAsync(cancellationToken);
+
+        var tasks = new List<CourseTaskDto>();
+        foreach (var x in dbTasks)
+        {
+            var scheduledAt = await db.SessionInstances.AsNoTracking()
+                .Where(s => s.CohortId == x.CohortId && s.CourseSessionId == x.CourseSessionId)
+                .Select(s => (DateTimeOffset?)s.ScheduledAt)
+                .FirstOrDefaultAsync(cancellationToken);
+                
+            tasks.Add(new CourseTaskDto(
+                x.Id, x.Title, x.Description,
+                x.TaskType, x.SubmissionType,
+                x.MaxScore, x.XpReward, x.IsRequired,
+                x.Status, x.Score, x.Feedback,
+                scheduledAt?.AddHours(x.DueHoursAfterSession) ?? scheduledAt
+            ));
+        }
+        return tasks;
     }
 }

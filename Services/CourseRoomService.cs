@@ -42,24 +42,43 @@ public class CourseRoomService(AcademyDbContext db) : ICourseRoomService
         var xp = await db.XpTransactions.Where(x => x.StudentUserId == studentUserId).SumAsync(x => (int?)x.Amount, cancellationToken) ?? 0;
         var attendance = await db.AttendanceRecords.CountAsync(x => x.StudentUserId == studentUserId && x.Status == AttendanceStatus.Present && x.SessionInstance!.CohortId == courseRoundId, cancellationToken);
         var taskCount = await db.TaskSubmissions.CountAsync(x => x.StudentUserId == studentUserId && x.Status == SubmissionStatus.Graded, cancellationToken);
-        var quizzes = await db.QuizAttempts.CountAsync(x => x.StudentUserId == studentUserId && x.SubmittedAt != null, cancellationToken);
+        var quizzesCount = await db.QuizAttempts.CountAsync(x => x.StudentUserId == studentUserId && x.SubmittedAt != null && x.Quiz!.CohortId == courseRoundId, cancellationToken);
         var totalWeeks = await db.SessionInstances.CountAsync(x => x.CohortId == courseRoundId, cancellationToken);
         var completion = totalWeeks == 0 ? 0 : decimal.Round(attendance * 100m / totalWeeks, 2);
 
-        var tasks = access == CourseAccessStatus.Open
+        var dbTasks = access == CourseAccessStatus.Open
             ? await db.LearningTasks.AsNoTracking()
                 .Where(x => x.CohortId == courseRoundId)
                 .OrderBy(x => x.CreatedAt)
-                .Select(x => new CourseTaskDto(
-                    x.Id, x.Title, x.Description,
-                    x.TaskType.ToString(), x.SubmissionType.ToString(),
-                    x.MaxScore, x.XpReward, x.IsRequired,
-                    x.Submissions.Where(s => s.StudentUserId == studentUserId).Select(s => s.Status.ToString()).FirstOrDefault(),
-                    x.Submissions.Where(s => s.StudentUserId == studentUserId).Select(s => (int?)s.Score).FirstOrDefault(),
-                    x.Submissions.Where(s => s.StudentUserId == studentUserId).Select(s => s.Feedback).FirstOrDefault()
-                ))
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Title,
+                    x.Description,
+                    TaskType = x.TaskType.ToString(),
+                    SubmissionType = x.SubmissionType.ToString(),
+                    x.MaxScore,
+                    x.XpReward,
+                    x.IsRequired,
+                    x.DueHoursAfterSession,
+                    Status = x.Submissions.Where(s => s.StudentUserId == studentUserId).Select(s => s.Status.ToString()).FirstOrDefault(),
+                    Score = x.Submissions.Where(s => s.StudentUserId == studentUserId).Select(s => (int?)s.Score).FirstOrDefault(),
+                    Feedback = x.Submissions.Where(s => s.StudentUserId == studentUserId).Select(s => s.Feedback).FirstOrDefault(),
+                    SessionScheduledAt = db.SessionInstances
+                        .Where(s => s.CohortId == courseRoundId && s.CourseSessionId == x.CourseSessionId)
+                        .Select(s => (DateTimeOffset?)s.ScheduledAt)
+                        .FirstOrDefault()
+                })
                 .ToListAsync(cancellationToken)
-            : [];
+            : new List<System.Dynamic.ExpandoObject>().Select(x => new { Id = Guid.Empty, Title = "", Description = "", TaskType = "", SubmissionType = "", MaxScore = 0, XpReward = 0, IsRequired = false, DueHoursAfterSession = 0, Status = (string?)null, Score = (int?)null, Feedback = (string?)null, SessionScheduledAt = (DateTimeOffset?)null }).ToList();
+
+        var tasks = dbTasks.Select(x => new CourseTaskDto(
+            x.Id, x.Title, x.Description,
+            x.TaskType, x.SubmissionType,
+            x.MaxScore, x.XpReward, x.IsRequired,
+            x.Status, x.Score, x.Feedback,
+            x.SessionScheduledAt?.AddHours(x.DueHoursAfterSession) ?? x.SessionScheduledAt
+        )).ToList();
 
         var roundStudentCount = await db.CohortEnrollments.CountAsync(x => x.CohortId == courseRoundId, cancellationToken);
         var courseStudentCount = await db.CohortEnrollments.CountAsync(x => x.Cohort!.CourseId == round.CourseId, cancellationToken);
@@ -77,6 +96,28 @@ public class CourseRoomService(AcademyDbContext db) : ICourseRoomService
             ))
             .ToListAsync(cancellationToken);
 
+        var instructorBio = round.EngineerUser?.Bio ?? "Senior Instructor with extensive industry and teaching experience.";
+        var instructorAvatar = round.EngineerUser?.AvatarUrl ?? $"https://api.dicebear.com/7.x/notionists/svg?seed={round.EngineerUser?.FirstName ?? "Ahmed"}&backgroundColor=f0f0f0";
+
+        var quizList = access == CourseAccessStatus.Open
+            ? await db.Quizzes.AsNoTracking()
+                .Where(x => x.CohortId == courseRoundId && x.IsPublished)
+                .Select(x => new QuizItemDto(
+                    x.Id,
+                    x.CourseSessionId,
+                    x.CohortId,
+                    x.Title,
+                    x.QuizType.ToString(),
+                    x.TimeLimitMinutes,
+                    x.MaxAttempts,
+                    x.PassScore,
+                    x.XpReward,
+                    x.IsPublished,
+                    x.Questions.Count
+                ))
+                .ToListAsync(cancellationToken)
+            : new List<QuizItemDto>();
+
         return new CourseRoomDto(
             round.CourseId,
             round.Id,
@@ -84,16 +125,50 @@ public class CourseRoomService(AcademyDbContext db) : ICourseRoomService
             round.Name,
             access,
             round.EngineerUser?.DisplayName,
+            instructorBio,
+            instructorAvatar,
             weeks,
             materials,
             tasks,
-            new CourseProgressDto(xp, attendance, taskCount, quizzes, completion),
+            quizList,
+            new CourseProgressDto(xp, attendance, taskCount, quizzesCount, completion),
             round.ZoomMeetingId,
             round.ZoomJoinUrl,
             null,
             roundStudentCount,
             courseStudentCount,
             classmatesList);
+    }
+
+    public async Task<IReadOnlyList<QuizItemDto>> GetQuizzesAsync(Guid studentUserId, Guid courseRoundId, CancellationToken cancellationToken = default)
+    {
+        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == studentUserId, cancellationToken);
+        var isAdminStaff = user != null && (user.RoleKey == AcademyRole.AcademyAdmin || user.RoleKey == AcademyRole.Engineer || user.RoleKey == AcademyRole.Cta);
+
+        var accepted = isAdminStaff || await db.CourseApplications.AnyAsync(x => x.CohortId == courseRoundId && x.StudentUserId == studentUserId && x.Status == ApplicationStatus.Accepted, cancellationToken);
+        var enrolled = isAdminStaff || await db.CohortEnrollments.AnyAsync(x => x.CohortId == courseRoundId && x.StudentUserId == studentUserId, cancellationToken);
+
+        if (!isAdminStaff && !accepted && !enrolled)
+        {
+            return new List<QuizItemDto>();
+        }
+
+        return await db.Quizzes.AsNoTracking()
+            .Where(x => x.CohortId == courseRoundId && x.IsPublished)
+            .Select(x => new QuizItemDto(
+                x.Id,
+                x.CourseSessionId,
+                x.CohortId,
+                x.Title,
+                x.QuizType.ToString(),
+                x.TimeLimitMinutes,
+                x.MaxAttempts,
+                x.PassScore,
+                x.XpReward,
+                x.IsPublished,
+                x.Questions.Count
+            ))
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<LeaderboardEntryDto>> LeaderboardAsync(Guid? courseRoundId = null, Guid? courseId = null, CancellationToken cancellationToken = default)

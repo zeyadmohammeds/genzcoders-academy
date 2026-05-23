@@ -148,13 +148,19 @@ public class NotificationService(
 
         // Support Resend custom API key if configured
         var resendKey = configuration["Resend:ApiKey"] ?? 
+                        Environment.GetEnvironmentVariable("RESEND_API_KEY") ??
                         configuration["Authentication:Resend:ApiKey"] ?? 
                         (password?.StartsWith("re_") == true ? password : null);
 
         if (!string.IsNullOrWhiteSpace(resendKey))
         {
             var fromEmail = fromAddress;
-            if (string.IsNullOrWhiteSpace(fromEmail) || fromEmail.Contains("example.com"))
+            if (string.IsNullOrWhiteSpace(fromEmail) || 
+                fromEmail.Contains("example.com") || 
+                fromEmail.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase) || 
+                fromEmail.EndsWith("@yahoo.com", StringComparison.OrdinalIgnoreCase) || 
+                fromEmail.EndsWith("@outlook.com", StringComparison.OrdinalIgnoreCase) || 
+                fromEmail.EndsWith("@hotmail.com", StringComparison.OrdinalIgnoreCase))
             {
                 fromEmail = "onboarding@resend.dev";
             }
@@ -171,7 +177,11 @@ public class NotificationService(
             };
 
             var response = await httpClient.PostAsJsonAsync("https://api.resend.com/emails", payload);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"Resend API returned status {(int)response.StatusCode}: {errorBody}");
+            }
             return;
         }
 
@@ -226,14 +236,18 @@ public class NotificationService(
         });
 
         var response = await httpClient.PostAsync($"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json", content);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Twilio SMS API returned status {(int)response.StatusCode}: {errorBody}");
+        }
     }
 
     private async Task SendWhatsAppViaTwilioAsync(string to, string body)
     {
         var sid = configuration["Twilio:AccountSid"];
         var token = configuration["Twilio:AuthToken"];
-        var from = configuration["Twilio:FromNumber"];
+        var from = configuration["Twilio:WhatsAppFromNumber"] ?? configuration["Twilio:FromNumber"];
 
         if (string.IsNullOrWhiteSpace(sid) || string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(to))
         {
@@ -258,7 +272,11 @@ public class NotificationService(
         });
 
         var response = await httpClient.PostAsync($"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json", content);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Twilio WhatsApp API returned status {(int)response.StatusCode}: {errorBody}");
+        }
     }
 
     private static string FormatPhoneNumber(string? number)
