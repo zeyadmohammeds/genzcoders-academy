@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GenZCoders")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+45e63c22daf2a35c2ab1a3479bf6203dfd018d18")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a6f5f6ebe13d712c269b204c2a2abe50b3040616")]
 [assembly: System.Reflection.AssemblyProductAttribute("GenZCoders")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GenZCoders")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
