@@ -556,8 +556,24 @@ public class AuthController(
         var user = await userManager.FindByEmailAsync(request.Email.Trim().ToLowerInvariant());
         if (user is null)
         {
-            // Fail silently to prevent user enumeration
-            return Ok(new { success = true, message = "If the email is registered, a reset link has been sent." });
+            var email = request.Email.Trim().ToLowerInvariant();
+            user = new ApplicationUser
+            {
+                UserName = email,
+                Email = email,
+                FirstName = "Academy",
+                LastName = "Student",
+                EmailConfirmed = true,
+                VerifiedAt = DateTimeOffset.UtcNow,
+                RoleKey = AcademyRole.Student,
+                IsActive = true
+            };
+            var createResult = await userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+            {
+                return BadRequest(new { message = "Failed to create user." });
+            }
+            await InitializeStudentAccountAsync(user);
         }
 
         var code = RandomNumberGenerator.GetInt32(100000, 999999).ToString();

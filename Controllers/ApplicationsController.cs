@@ -82,7 +82,7 @@ public class ApplicationsController(IApplicationService applications, AcademyDbC
     [HttpPost("{applicationId:guid}/approve-payment")]
     public async Task<IActionResult> ApprovePaymentReceipt(Guid applicationId, CancellationToken cancellationToken)
     {
-        var app = await db.CourseApplications.FirstOrDefaultAsync(x => x.Id == applicationId, cancellationToken);
+        var app = await db.CourseApplications.Include(x => x.Course).FirstOrDefaultAsync(x => x.Id == applicationId, cancellationToken);
         if (app is null) return NotFound();
         if (!app.PaymentReceiptPendingReview) return BadRequest("No pending payment receipt.");
 
@@ -90,23 +90,128 @@ public class ApplicationsController(IApplicationService applications, AcademyDbC
         app.PaymentCompleted = true;
         app.PaidAt = DateTimeOffset.UtcNow;
         app.Status = ApplicationStatus.Paid;
-        
-        // Also enroll the student in the cohort
+
+        var price = app.Course?.PriceEgp ?? 0;
+
+        // 1. Create the EnrollmentOrder (adds to total payment count and revenue in dashboard)
+        var order = new EnrollmentOrder
+        {
+            StudentUserId = app.StudentUserId,
+            OrderType = OrderType.Single,
+            SubtotalEgp = price,
+            TotalAmountEgp = price,
+            PaymentMethod = app.PaymentMethod ?? "Manual",
+            PaymentReference = "Receipt Approved",
+            PaymentStatus = PaymentStatus.Paid,
+            PaidAt = DateTimeOffset.UtcNow
+        };
+        db.EnrollmentOrders.Add(order);
+        await db.SaveChangesAsync(cancellationToken);
+
+        // 2. Create the PaymentTransaction
+        var transaction = new PaymentTransaction
+        {
+            EnrollmentOrderId = order.Id,
+            Provider = "manual",
+            ProviderTransactionId = app.PaymentMethod ?? "ReceiptApproved",
+            AmountEgp = price,
+            Status = PaymentStatus.Paid,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.PaymentTransactions.Add(transaction);
+
+        // 3. Create or activate the main Enrollment record
+        var existingEnrollment = await db.Enrollments.FirstOrDefaultAsync(x => x.CourseId == app.CourseId && x.StudentUserId == app.StudentUserId, cancellationToken);
+        if (existingEnrollment is null)
+        {
+            existingEnrollment = new Enrollment
+            {
+                CourseId = app.CourseId,
+                CohortId = app.CohortId,
+                StudentUserId = app.StudentUserId,
+                EnrollmentOrderId = order.Id,
+                EnrollmentStatus = EnrollmentStatus.Active,
+                Status = "active",
+                UnitPriceEgp = price,
+                FinalPriceEgp = price,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+            db.Enrollments.Add(existingEnrollment);
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        else
+        {
+            existingEnrollment.EnrollmentOrderId = order.Id;
+            existingEnrollment.EnrollmentStatus = EnrollmentStatus.Active;
+            existingEnrollment.Status = "active";
+            existingEnrollment.CohortId = app.CohortId;
+        }
+
+        // 4. Enroll the student in the cohort and increment student count
         if (app.CohortId.HasValue)
         {
-            var existingEnrollment = await db.CohortEnrollments
+            var existingCohortEnrollment = await db.CohortEnrollments
                 .FirstOrDefaultAsync(e => e.CohortId == app.CohortId.Value && e.StudentUserId == app.StudentUserId, cancellationToken);
-            if (existingEnrollment is null)
+            if (existingCohortEnrollment is null)
             {
-                var enrollment = new CohortEnrollment
+                var cohortEnrollment = new CohortEnrollment
                 {
                     CohortId = app.CohortId.Value,
                     StudentUserId = app.StudentUserId,
+                    EnrollmentId = existingEnrollment.Id,
                     EnrolledAt = DateTimeOffset.UtcNow,
                 };
-                db.CohortEnrollments.Add(enrollment);
+                db.CohortEnrollments.Add(cohortEnrollment);
+
+                var cohort = await db.Cohorts.FindAsync(new object[] { app.CohortId.Value }, cancellationToken);
+                if (cohort != null)
+                {
+                    cohort.CurrentStudents += 1;
+                }
             }
         }
+
+        await db.SaveChangesAsync(cancellationToken);
+        return Ok(new { success = true });
+    }
+
+    [Authorize(Policy = "CourseManagers")]
+    [HttpPost("{applicationId:guid}/reject-payment")]
+    public async Task<IActionResult> RejectPaymentReceipt(Guid applicationId, CancellationToken cancellationToken)
+    {
+        var app = await db.CourseApplications.Include(x => x.Course).FirstOrDefaultAsync(x => x.Id == applicationId, cancellationToken);
+        if (app is null) return NotFound();
+        if (!app.PaymentReceiptPendingReview) return BadRequest("No pending payment receipt.");
+
+        app.PaymentReceiptPendingReview = false;
+        app.PaymentCompleted = false;
+        app.Status = ApplicationStatus.PaymentPending; // back to payment pending so student can try again
+
+        var price = app.Course?.PriceEgp ?? 0;
+        var order = new EnrollmentOrder
+        {
+            StudentUserId = app.StudentUserId,
+            OrderType = OrderType.Single,
+            SubtotalEgp = price,
+            TotalAmountEgp = price,
+            PaymentMethod = app.PaymentMethod ?? "Manual",
+            PaymentReference = "Receipt Rejected",
+            PaymentStatus = PaymentStatus.Failed,
+            PaidAt = null
+        };
+        db.EnrollmentOrders.Add(order);
+        await db.SaveChangesAsync(cancellationToken);
+
+        var transaction = new PaymentTransaction
+        {
+            EnrollmentOrderId = order.Id,
+            Provider = "manual",
+            ProviderTransactionId = "Rejected",
+            AmountEgp = price,
+            Status = PaymentStatus.Failed,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        db.PaymentTransactions.Add(transaction);
 
         await db.SaveChangesAsync(cancellationToken);
         return Ok(new { success = true });

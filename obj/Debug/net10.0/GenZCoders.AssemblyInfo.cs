@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GenZCoders")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+45e63c22daf2a35c2ab1a3479bf6203dfd018d18")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fb9d60bda706ec4879b298b8c699a8c075ea2425")]
 [assembly: System.Reflection.AssemblyProductAttribute("GenZCoders")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GenZCoders")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

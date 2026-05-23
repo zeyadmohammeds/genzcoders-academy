@@ -5,6 +5,7 @@ using GenZCoders.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace GenZCoders.Services;
 
 public class NotificationService(
     AcademyDbContext db, 
+    IServiceProvider serviceProvider,
     IHubContext<NotificationHub> hubContext,
     IConfiguration configuration,
     IHttpClientFactory httpClientFactory) : INotificationService
@@ -57,25 +59,26 @@ public class NotificationService(
         // Dispatch external messages (Email, SMS, WhatsApp) in the background so it doesn't block the request
         foreach (var msg in created.Where(n => n.Channel != NotificationChannel.InApp))
         {
+            var msgId = msg.Id;
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    using var scope = db.Database.BeginTransaction();
-                    // Reload inside background thread to modify status
-                    var activeMsg = await db.NotificationMessages.FindAsync(msg.Id);
+                    using var scope = serviceProvider.CreateScope();
+                    var scopedDb = scope.ServiceProvider.GetRequiredService<AcademyDbContext>();
+                    var activeMsg = await scopedDb.NotificationMessages.FindAsync(msgId);
                     if (activeMsg != null)
                     {
                         await DispatchMessageAsync(activeMsg);
-                        await db.SaveChangesAsync();
+                        await scopedDb.SaveChangesAsync();
                     }
                 }
                 catch (Exception ex)
                 {
-                    System.Console.WriteLine($"[Notification Background Dispatch Failed] msg ID: {msg.Id}, Error: {ex.Message}");
+                    System.Console.WriteLine($"[Notification Background Dispatch Failed] msg ID: {msgId}, Error: {ex.Message}");
                     SentrySdk.CaptureException(ex);
                 }
-            }, cancellationToken);
+            });
         }
 
         // Broadcast in-app notifications in real-time
@@ -138,21 +141,30 @@ public class NotificationService(
         var fromAddress = configuration["Email:FromAddress"];
         var fromName = configuration["Email:FromName"] ?? "ElSewedy Academy";
 
-        if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(to))
+        if (string.IsNullOrWhiteSpace(to))
         {
             return;
         }
 
         // Support Resend custom API key if configured
-        var resendKey = configuration["Resend:ApiKey"] ?? configuration["Authentication:Resend:ApiKey"];
+        var resendKey = configuration["Resend:ApiKey"] ?? 
+                        configuration["Authentication:Resend:ApiKey"] ?? 
+                        (password?.StartsWith("re_") == true ? password : null);
+
         if (!string.IsNullOrWhiteSpace(resendKey))
         {
+            var fromEmail = fromAddress;
+            if (string.IsNullOrWhiteSpace(fromEmail) || fromEmail.Contains("example.com"))
+            {
+                fromEmail = "onboarding@resend.dev";
+            }
+
             using var httpClient = httpClientFactory.CreateClient();
             httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", resendKey);
             
             var payload = new
             {
-                from = $"{fromName} <onboarding@resend.dev>",
+                from = $"{fromName} <{fromEmail}>",
                 to = new[] { to },
                 subject = subject,
                 html = body
@@ -160,6 +172,11 @@ public class NotificationService(
 
             var response = await httpClient.PostAsJsonAsync("https://api.resend.com/emails", payload);
             response.EnsureSuccessStatusCode();
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(host))
+        {
             return;
         }
 
@@ -173,7 +190,7 @@ public class NotificationService(
 
         var mailMessage = new MailMessage
         {
-            From = new MailAddress(fromAddress, fromName),
+            From = new MailAddress(fromAddress ?? "info@genz.academy", fromName),
             Subject = subject,
             Body = body,
             IsBodyHtml = true
@@ -194,14 +211,17 @@ public class NotificationService(
             return;
         }
 
+        var formattedTo = FormatPhoneNumber(to);
+        var formattedFrom = FormatPhoneNumber(from);
+
         using var httpClient = httpClientFactory.CreateClient();
         var credentials = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{sid}:{token}"));
         httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
 
         var content = new FormUrlEncodedContent(new[]
         {
-            new KeyValuePair<string, string>("To", to),
-            new KeyValuePair<string, string>("From", from),
+            new KeyValuePair<string, string>("To", formattedTo),
+            new KeyValuePair<string, string>("From", formattedFrom),
             new KeyValuePair<string, string>("Body", body)
         });
 
@@ -220,12 +240,15 @@ public class NotificationService(
             return;
         }
 
+        var formattedTo = FormatPhoneNumber(to);
+        var formattedFrom = FormatPhoneNumber(from);
+
         using var httpClient = httpClientFactory.CreateClient();
         var credentials = Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes($"{sid}:{token}"));
         httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
 
-        var whatsappTo = to.StartsWith("whatsapp:") ? to : $"whatsapp:{to}";
-        var whatsappFrom = from.StartsWith("whatsapp:") ? from : $"whatsapp:{from}";
+        var whatsappTo = formattedTo.StartsWith("whatsapp:") ? formattedTo : $"whatsapp:{formattedTo}";
+        var whatsappFrom = formattedFrom.StartsWith("whatsapp:") ? formattedFrom : $"whatsapp:{formattedFrom}";
 
         var content = new FormUrlEncodedContent(new[]
         {
@@ -236,6 +259,33 @@ public class NotificationService(
 
         var response = await httpClient.PostAsync($"https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json", content);
         response.EnsureSuccessStatusCode();
+    }
+
+    private static string FormatPhoneNumber(string? number)
+    {
+        if (string.IsNullOrWhiteSpace(number)) return string.Empty;
+        var clean = new string(number.Where(char.IsDigit).ToArray());
+        
+        // If it starts with 20 and has 12 digits (e.g. 201xxxxxxxxx)
+        if (clean.StartsWith("20") && clean.Length == 12)
+        {
+            return "+" + clean;
+        }
+        
+        // If it starts with 01 and has 11 digits (e.g. 01xxxxxxxxx)
+        if (clean.StartsWith("01") && clean.Length == 11)
+        {
+            return "+2" + clean;
+        }
+        
+        // If it starts with 1 and has 10 digits (e.g. 1xxxxxxxxx)
+        if (clean.StartsWith("1") && clean.Length == 10)
+        {
+            return "+20" + clean;
+        }
+
+        if (number.StartsWith("+")) return number;
+        return "+" + clean;
     }
 
     public async Task UpdateSettingsAsync(Guid userId, NotificationSettingsRequest request, CancellationToken cancellationToken = default)
@@ -314,9 +364,9 @@ public class NotificationService(
     private static bool IsEnabled(NotificationChannel channel, UserNotificationSetting? settings) => channel switch
     {
         NotificationChannel.InApp => true,
-        NotificationChannel.Email => settings?.EmailEnabled ?? false,
-        NotificationChannel.WhatsApp => settings?.WhatsAppEnabled ?? false,
-        NotificationChannel.Sms => settings?.SmsEnabled ?? false,
+        NotificationChannel.Email => settings == null || settings.EmailEnabled,
+        NotificationChannel.WhatsApp => settings == null || settings.WhatsAppEnabled,
+        NotificationChannel.Sms => settings == null || settings.SmsEnabled,
         _ => false
     };
 }
