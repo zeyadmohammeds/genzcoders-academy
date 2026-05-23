@@ -2,6 +2,8 @@ using GenZCoders.DTOs;
 using GenZCoders.Models;
 using GenZCoders.Models.Identity;
 using GenZCoders.Services;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -199,7 +201,15 @@ public class AuthController(
             await signInManager.SignInAsync(user, isPersistent: true);
             
             string frontendUrl = GetFrontendUrl(returnUrl);
-            var destination = "/";
+            string destination = "/onboarding";
+            if (!isNewUser)
+            {
+                var profile = await db.StudentProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
+                if (profile?.IsOnboardingCompleted == true)
+                {
+                    destination = GetDestination(user);
+                }
+            }
             return Redirect($"{frontendUrl}{destination}");
         }
         catch (Exception ex)
@@ -230,7 +240,16 @@ public class AuthController(
                 var existingUser = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
                 if (existingUser != null)
                 {
-                    destination = GetDestination(existingUser);
+                    // Check if existing user needs onboarding
+                    var profile = await db.StudentProfiles.FirstOrDefaultAsync(p => p.UserId == existingUser.Id);
+                    if (profile?.IsOnboardingCompleted == false)
+                    {
+                        destination = "/onboarding";
+                    }
+                    else
+                    {
+                        destination = GetDestination(existingUser);
+                    }
                     return Redirect($"{frontendUrl}{destination}");
                 }
             }
@@ -270,7 +289,15 @@ public class AuthController(
             await userManager.AddLoginAsync(user, info);
             await signInManager.SignInAsync(user, isPersistent: true);
             
-            destination = "/";
+            // New users go to onboarding, existing go to their appropriate destination
+            if (isNewUser)
+            {
+                destination = "/onboarding";
+            }
+            else
+            {
+                destination = GetDestination(user);
+            }
             return Redirect($"{frontendUrl}{destination}");
         }
         catch (Exception ex)
@@ -305,10 +332,9 @@ public class AuthController(
                 return BadRequest(new { message = "Failed to parse Google user information" });
             }
 
-            // Verify audience matches either the backend or frontend Client ID
+            // Verify audience matches the authorized client ID
             var allowedClientIds = new List<string> {
                 configuration["Authentication:Google:ClientId"] ?? "",
-                configuration["Authentication:Google:FrontendClientId"] ?? "657065188070-80edljn8ugu9uinsbp1sd6e93a55f5bg.apps.googleusercontent.com",
                 "1017632556527-l847alsomgr7qsnmfo709alduqvtdbsb.apps.googleusercontent.com"
             };
 
@@ -349,7 +375,16 @@ public class AuthController(
             // Perform internal sign in
             await signInManager.SignInAsync(user, isPersistent: true);
 
-            var destination = "/";
+            // Determine destination based on user state
+            var destination = "/onboarding";
+            if (!isNewUser)
+            {
+                var existingProfile = await db.StudentProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id);
+                if (existingProfile?.IsOnboardingCompleted == true)
+                {
+                    destination = GetDestination(user);
+                }
+            }
             
             // Return user details + destination redirect
             var authUserDto = await authWorkflow.CurrentUserAsync(user.Id, CancellationToken.None);
@@ -378,7 +413,7 @@ public class AuthController(
     private string GetDestination(ApplicationUser user)
     {
         if (user.RoleKey == AcademyRole.AcademyAdmin) return "/admin";
-        return "/";
+        return "/dashboard";
     }
 
     private async Task InitializeStudentAccountAsync(ApplicationUser user)
@@ -507,6 +542,109 @@ public class AuthController(
     {
         await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
         return Ok();
+    }
+
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            return BadRequest(new { message = "Email is required" });
+        }
+
+        var user = await userManager.FindByEmailAsync(request.Email.Trim().ToLowerInvariant());
+        if (user is null)
+        {
+            // Fail silently to prevent user enumeration
+            return Ok(new { success = true, message = "If the email is registered, a reset link has been sent." });
+        }
+
+        var code = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+
+        db.EmailVerificationCodes.Add(new EmailVerificationCode
+        {
+            UserId = user.Id,
+            Email = user.Email ?? request.Email,
+            CodeHash = Hash(code),
+            VerificationTokenHash = Hash(token),
+            Purpose = VerificationPurpose.PasswordReset,
+            ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(15)
+        });
+        await db.SaveChangesAsync(cancellationToken);
+
+        string frontendUrl = GetFrontendUrl("/");
+        await notifications.QueueAsync(
+            user.Id,
+            "Reset your password",
+            $"Use code {code} or reset your password here: {frontendUrl}/reset-password?token={Uri.EscapeDataString(token)}&userId={user.Id}",
+            [NotificationChannel.Email, NotificationChannel.InApp],
+            cancellationToken);
+
+        return Ok(new { success = true, message = "If the email is registered, a reset link has been sent." });
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (request.UserId == Guid.Empty || string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
+        {
+            return BadRequest(new { message = "All fields are required" });
+        }
+
+        var user = await userManager.FindByIdAsync(request.UserId.ToString());
+        if (user is null) return BadRequest(new { message = "User not found" });
+
+        var record = await db.EmailVerificationCodes
+            .Where(x => x.UserId == user.Id && x.Purpose == VerificationPurpose.PasswordReset && x.Status == VerificationStatus.Pending)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (record == null || record.VerificationTokenHash != Hash(request.Token) || record.ExpiresAt < DateTimeOffset.UtcNow)
+        {
+            return BadRequest(new { message = "Invalid or expired reset token" });
+        }
+
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await userManager.ResetPasswordAsync(user, resetToken, request.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { message = string.Join("; ", result.Errors.Select(e => e.Description)) });
+        }
+
+        record.Status = VerificationStatus.Used;
+        record.UsedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+
+        await notifications.QueueAsync(
+            user.Id,
+            "Password changed successfully",
+            "Your password has been successfully reset. If this wasn't you, contact support immediately.",
+            [NotificationChannel.Email, NotificationChannel.InApp],
+            cancellationToken);
+
+        return Ok(new { success = true });
+    }
+
+    private static string Hash(string value)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
+        return Convert.ToHexString(bytes);
+    }
+
+    public class ForgotPasswordRequest
+    {
+        public string Email { get; set; } = string.Empty;
+    }
+
+    public class ResetPasswordRequest
+    {
+        public Guid UserId { get; set; }
+        public string Token { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
     }
 
     private Guid CurrentUserId()

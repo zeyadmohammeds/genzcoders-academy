@@ -32,6 +32,7 @@ public class NotificationsController(INotificationService notifications, Academy
                 Message = m.Body,
                 Type = "info",
                 IsRead = m.Status == NotificationStatus.Read,
+                m.Destination,
                 m.CreatedAt
             }),
             totalCount,

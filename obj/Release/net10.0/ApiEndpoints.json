@@ -980,6 +980,22 @@
   },
   {
     "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "ChangePassword",
+    "RelativePath": "api/auth/change-password",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.DTOs.ChangePasswordRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
     "Method": "GetAdminStatus",
     "RelativePath": "api/auth/debug/admin-status",
     "HttpMethod": "GET",
@@ -1100,6 +1116,22 @@
         "Name": "returnUrl",
         "Type": "System.String",
         "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "GenZCoders.Controllers.AuthController",
+    "Method": "GoogleTokenLogin",
+    "RelativePath": "api/auth/google-token",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "GenZCoders.Controllers.AuthController\u002BGoogleTokenRequest",
+        "IsRequired": true
       }
     ],
     "ReturnTypes": []
