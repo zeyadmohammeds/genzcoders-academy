@@ -64,16 +64,20 @@ public class AuthController(
     public async Task<IActionResult> Onboarding(OnboardingRequest request, CancellationToken cancellationToken)
         => Ok(await authWorkflow.CompleteOnboardingAsync(CurrentUserId(), request, cancellationToken));
 
+    [ApiExplorerSettings(IgnoreApi = true)]
     [HttpGet("debug/users")]
     public async Task<IActionResult> DebugUsers()
     {
+        if (!IsDevelopment()) return NotFound();
         var users = userManager.Users.Select(u => new { u.Email, u.FirstName, u.LastName, u.RoleKey, u.EmailConfirmed, u.IsActive }).Take(10);
         return Ok(users);
     }
 
+    [ApiExplorerSettings(IgnoreApi = true)]
     [HttpPost("debug/force-create-admin")]
     public async Task<IActionResult> ForceCreateAdmin()
     {
+        if (!IsDevelopment()) return NotFound();
         var email = "admin@genz.academy";
         var password = "Academy123!";
         
@@ -106,7 +110,6 @@ public class AuthController(
             await userManager.ResetPasswordAsync(admin, token, password);
         }
         
-        // Ensure role exists and user is in role
         if (!await roleManager.RoleExistsAsync(AcademyRole.AcademyAdmin))
         {
             await roleManager.CreateAsync(new ApplicationRole { Name = AcademyRole.AcademyAdmin });
@@ -119,9 +122,11 @@ public class AuthController(
         return Ok(new { success = true, message = "Admin user ready" });
     }
 
+    [ApiExplorerSettings(IgnoreApi = true)]
     [HttpGet("debug/admin-status")]
     public async Task<IActionResult> GetAdminStatus()
     {
+        if (!IsDevelopment()) return NotFound();
         var admin = await userManager.FindByEmailAsync("admin@genz.academy");
         if (admin == null) return NotFound("Admin not found");
         
@@ -136,6 +141,9 @@ public class AuthController(
             passwordValid = pwdCheck
         });
     }
+
+    private bool IsDevelopment() =>
+        Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
 
     [HttpGet("google")]
     public IActionResult Google(string? returnUrl = "/")
@@ -156,17 +164,18 @@ public class AuthController(
 
         if (!isGoogleConfigured)
         {
-            // Graceful simulated bypass when keys are missing or invalid
-            return RedirectToAction(nameof(GoogleMockLogin), new { returnUrl });
+            return BadRequest(new { message = "Google OAuth is not configured. Please configure Authentication:Google in app settings." });
         }
 
         var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", Url.Action(nameof(GoogleCallback), new { returnUrl }));
         return Challenge(properties, "Google");
     }
 
+    [ApiExplorerSettings(IgnoreApi = true)]
     [HttpGet("google-mock")]
     public async Task<IActionResult> GoogleMockLogin(string? returnUrl = "/")
     {
+        if (!IsDevelopment()) return NotFound();
         try
         {
             var email = "google.student@elsewdy.academy";
@@ -438,31 +447,12 @@ public class AuthController(
             WhatsAppEnabled = true 
         });
 
-        // Auto-enroll new user in all courses so their enrollments are instantly open!
-        var courses = await db.Courses.ToListAsync();
-        foreach (var c in courses)
-        {
-            db.Enrollments.Add(new Enrollment
-            {
-                CourseId = c.Id,
-                StudentUserId = user.Id,
-                Status = "active",
-                EnrollmentStatus = EnrollmentStatus.Active,
-                UnitPriceEgp = c.PriceEgp,
-                DiscountAmountEgp = c.PriceEgp,
-                FinalPriceEgp = 0,
-                PromoCode = "GOOGLE_AUTO",
-                CompletedAt = DateTimeOffset.UtcNow,
-                CreatedAt = DateTimeOffset.UtcNow
-            });
-        }
-
         await db.SaveChangesAsync();
 
         await notifications.QueueAsync(
             user.Id,
-            "Welcome to ElSewedy Academy via Google",
-            $"Hi {user.FirstName}, your account has been successfully initialized. Browse our tracks and complete onboarding to start.",
+            "Welcome to ElSewedy Academy",
+            $"Hi {user.FirstName}, your account has been successfully created. Complete your onboarding and browse available courses to enroll.",
             [NotificationChannel.InApp, NotificationChannel.Email],
             CancellationToken.None);
     }
@@ -554,49 +544,32 @@ public class AuthController(
         }
 
         var user = await userManager.FindByEmailAsync(request.Email.Trim().ToLowerInvariant());
-        if (user is null)
+
+        // Always return the same message to avoid user enumeration
+        if (user is not null)
         {
-            var email = request.Email.Trim().ToLowerInvariant();
-            user = new ApplicationUser
+            var code = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+
+            db.EmailVerificationCodes.Add(new EmailVerificationCode
             {
-                UserName = email,
-                Email = email,
-                FirstName = "Academy",
-                LastName = "Student",
-                EmailConfirmed = true,
-                VerifiedAt = DateTimeOffset.UtcNow,
-                RoleKey = AcademyRole.Student,
-                IsActive = true
-            };
-            var createResult = await userManager.CreateAsync(user);
-            if (!createResult.Succeeded)
-            {
-                return BadRequest(new { message = "Failed to create user." });
-            }
-            await InitializeStudentAccountAsync(user);
+                UserId = user.Id,
+                Email = user.Email ?? request.Email,
+                CodeHash = Hash(code),
+                VerificationTokenHash = Hash(token),
+                Purpose = VerificationPurpose.PasswordReset,
+                ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(15)
+            });
+            await db.SaveChangesAsync(cancellationToken);
+
+            string frontendUrl = GetFrontendUrl("/");
+            await notifications.QueueAsync(
+                user.Id,
+                "Reset your password",
+                $"Use code {code} or reset your password here: {frontendUrl}/reset-password?token={Uri.EscapeDataString(token)}&userId={user.Id}",
+                [NotificationChannel.Email, NotificationChannel.InApp],
+                cancellationToken);
         }
-
-        var code = RandomNumberGenerator.GetInt32(100000, 999999).ToString();
-        var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-
-        db.EmailVerificationCodes.Add(new EmailVerificationCode
-        {
-            UserId = user.Id,
-            Email = user.Email ?? request.Email,
-            CodeHash = Hash(code),
-            VerificationTokenHash = Hash(token),
-            Purpose = VerificationPurpose.PasswordReset,
-            ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(15)
-        });
-        await db.SaveChangesAsync(cancellationToken);
-
-        string frontendUrl = GetFrontendUrl("/");
-        await notifications.QueueAsync(
-            user.Id,
-            "Reset your password",
-            $"Use code {code} or reset your password here: {frontendUrl}/reset-password?token={Uri.EscapeDataString(token)}&userId={user.Id}",
-            [NotificationChannel.Email, NotificationChannel.InApp],
-            cancellationToken);
 
         return Ok(new { success = true, message = "If the email is registered, a reset link has been sent." });
     }

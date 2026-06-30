@@ -2,6 +2,7 @@ using GenZCoders.Data;
 using GenZCoders.DTOs;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using GenZCoders.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -56,35 +57,212 @@ public class PaymentsController(AcademyDbContext db, IConfiguration configuratio
     /// </summary>
     [HttpPost("paymob-webhook")]
     [AllowAnonymous]
-    public async Task<IActionResult> PaymobWebhook([FromQuery] string hmac, [FromBody] dynamic payload, CancellationToken cancellationToken)
+    public async Task<IActionResult> PaymobWebhook(CancellationToken cancellationToken)
     {
-        // 1. Get HMAC secret from configuration
-        var hmacSecret = configuration["Paymob:HmacSecret"];
-        
-        // 2. Validate HMAC (In production, build the string exactly as Paymob specifies: amount_cents, created_at, currency, error_occured, has_parent_transaction, id, integration_id, is_3d_secure, is_auth, is_capture, is_refunded, is_standalone_payment, is_voided, order.id, owner, pending, source_data.pan, source_data.sub_type, source_data.type, success)
-        // Note: For full HMAC validation logic, you need to extract the exact fields from the payload object.
-        // For now, we accept the webhook to prevent Paymob from retrying, but you MUST implement HMAC before going live.
-        logger.LogInformation("Received Paymob Webhook. Payload: {Payload}", (string)payload.ToString());
+        string rawBody;
+        using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
+        {
+            rawBody = await reader.ReadToEndAsync(cancellationToken);
+        }
 
-        var obj = System.Text.Json.JsonDocument.Parse(payload.ToString()).RootElement;
-        var success = obj.GetProperty("obj").GetProperty("success").GetBoolean();
-        var orderId = obj.GetProperty("obj").GetProperty("order").GetProperty("id").GetInt32();
+        var hmacSecret = configuration["Paymob:HmacSecret"];
+        if (string.IsNullOrWhiteSpace(hmacSecret))
+        {
+            logger.LogWarning("Paymob HMAC secret not configured - rejecting webhook");
+            return Unauthorized();
+        }
+
+        var isValid = ValidatePaymobHmac(rawBody, hmacSecret);
+        if (!isValid)
+        {
+            logger.LogWarning("Paymob webhook HMAC validation failed - rejecting");
+            return Unauthorized(new { error = "Invalid HMAC signature" });
+        }
+
+        logger.LogInformation("Received Paymob Webhook (HMAC verified)");
+
+        using var doc = JsonDocument.Parse(rawBody);
+        var root = doc.RootElement;
+        var obj = root.GetProperty("obj");
+        var success = obj.GetProperty("success").GetBoolean();
+        var orderId = obj.GetProperty("order").GetProperty("id").GetInt32();
+        var amountCents = obj.GetProperty("amount_cents").GetInt32();
+        var transactionId = obj.GetProperty("id").GetInt32().ToString();
 
         if (success)
         {
-            // Payment succeeded! You should find the CourseApplication linked to this Paymob Order ID.
-            // Mark it as paid:
-            // var application = await db.CourseApplications.FirstOrDefaultAsync(x => x.PaymobOrderId == orderId);
-            // application.PaymentCompleted = true;
-            // await db.SaveChangesAsync();
-            logger.LogInformation("Paymob payment {OrderId} was SUCCESSFUL.", (object)orderId);
+            var application = await db.CourseApplications
+                .FirstOrDefaultAsync(x => x.PaymobOrderId == orderId, cancellationToken);
+
+            if (application is not null)
+            {
+                application.ApplicationStatus = ApplicationStatus.Paid;
+                db.PaymentTransactions.Add(new PaymentTransaction
+                {
+                    Id = Guid.NewGuid(),
+                    EnrollmentOrderId = null,
+                    Status = PaymentStatus.Paid,
+                    AmountEgp = amountCents / 100m,
+                    Reference = transactionId,
+                    Gateway = "paymob",
+                    CreatedAt = DateTimeOffset.UtcNow
+                });
+                await db.SaveChangesAsync(cancellationToken);
+                logger.LogInformation("Paymob payment {OrderId} succeeded - application {AppId} marked as paid", orderId, application.Id);
+            }
+            else
+            {
+                logger.LogWarning("Paymob payment {OrderId} succeeded but no matching application found", orderId);
+            }
         }
         else
         {
-            logger.LogWarning("Paymob payment {OrderId} FAILED.", (object)orderId);
+            logger.LogWarning("Paymob payment {OrderId} FAILED", orderId);
         }
 
         return Ok();
+    }
+
+    private static bool ValidatePaymobHmac(string rawBody, string secret)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(rawBody);
+            var obj = doc.RootElement.GetProperty("obj");
+
+            var fields = new[]
+            {
+                "amount_cents", "created_at", "currency", "error_occured",
+                "has_parent_transaction", "id", "integration_id", "is_3d_secure",
+                "is_auth", "is_capture", "is_refunded", "is_standalone_payment",
+                "is_voided", "order.id", "owner", "pending",
+                "source_data.pan", "source_data.sub_type", "source_data.type", "success"
+            };
+
+            var hmacString = string.Join("", fields.Select(f => GetNestedValue(obj, f)));
+            var computedHmac = HMACSHA256.HashData(Encoding.UTF8.GetBytes(hmacString), Encoding.UTF8.GetBytes(secret));
+            var computedHex = Convert.ToHexString(computedHmac).ToLowerInvariant();
+
+            var receivedHmac = (doc.RootElement.TryGetProperty("hmac", out var hmacEl) ? hmacEl.GetString() : null)
+                ?? obj.TryGetProperty("hmac", out var objHmac) ? objHmac.GetString()
+                : null;
+
+            if (string.IsNullOrWhiteSpace(receivedHmac)) return false;
+
+            return CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(computedHex),
+                Encoding.UTF8.GetBytes(receivedHmac.ToLowerInvariant()));
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static string GetNestedValue(JsonElement element, string path)
+    {
+        var parts = path.Split('.');
+        JsonElement current = element;
+        foreach (var part in parts)
+        {
+            if (!current.TryGetProperty(part, out current)) return "";
+        }
+        return current.ValueKind switch
+        {
+            JsonValueKind.String => current.GetString() ?? "",
+            JsonValueKind.Number => current.GetRawText(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            JsonValueKind.Null => "",
+            _ => current.GetRawText()
+        };
+    }
+
+    /// <summary>
+    /// Fawry payment callback (webhook).
+    /// Configure in Fawry dashboard: https://yourdomain.com/api/payments/fawry-callback
+    /// </summary>
+    [HttpPost("fawry-callback")]
+    [AllowAnonymous]
+    public async Task<IActionResult> FawryCallback(CancellationToken cancellationToken)
+    {
+        string rawBody;
+        using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
+        {
+            rawBody = await reader.ReadToEndAsync(cancellationToken);
+        }
+
+        logger.LogInformation("Received Fawry callback: {Body}", rawBody);
+
+        try
+        {
+            using var doc = JsonDocument.Parse(rawBody);
+            var root = doc.RootElement;
+            var statusCode = root.GetProperty("statusCode").GetInt32();
+            var orderRef = root.GetProperty("merchantRefNumber").GetString() ?? "";
+            var paymentRef = root.GetProperty("referenceNumber").GetString() ?? "";
+            var amount = root.GetProperty("paymentAmount").GetDecimal();
+
+            var securityKey = configuration["Fawry:SecurityKey"];
+            var merchantCode = configuration["Fawry:MerchantCode"];
+
+            if (!string.IsNullOrWhiteSpace(securityKey))
+            {
+                var signature = root.TryGetProperty("signature", out var sigEl) ? sigEl.GetString() : null;
+                if (!string.IsNullOrWhiteSpace(signature))
+                {
+                    var computedSig = ComputeFawrySignature(orderRef, paymentRef, amount, statusCode, securityKey, merchantCode);
+                    if (!CryptographicOperations.FixedTimeEquals(
+                            Encoding.UTF8.GetBytes(signature),
+                            Encoding.UTF8.GetBytes(computedSig)))
+                    {
+                        logger.LogWarning("Fawry callback signature mismatch - rejecting");
+                        return Unauthorized(new { error = "Invalid signature" });
+                    }
+                }
+            }
+
+            if (statusCode == 200)
+            {
+                if (Guid.TryParse(orderRef, out var appId))
+                {
+                    var application = await db.CourseApplications.FindAsync([appId], cancellationToken);
+                    if (application is not null)
+                    {
+                        application.ApplicationStatus = ApplicationStatus.Paid;
+                        db.PaymentTransactions.Add(new PaymentTransaction
+                        {
+                            Id = Guid.NewGuid(),
+                            EnrollmentOrderId = null,
+                            Status = PaymentStatus.Paid,
+                            AmountEgp = amount,
+                            Reference = paymentRef,
+                            Gateway = "fawry",
+                            CreatedAt = DateTimeOffset.UtcNow
+                        });
+                        await db.SaveChangesAsync(cancellationToken);
+                        logger.LogInformation("Fawry payment {Ref} succeeded - application {AppId} paid", paymentRef, appId);
+                    }
+                }
+            }
+            else
+            {
+                logger.LogWarning("Fawry payment failed - statusCode: {Code}, ref: {Ref}", statusCode, paymentRef);
+            }
+        }
+        catch (JsonException ex)
+        {
+            logger.LogError(ex, "Failed to parse Fawry callback payload");
+        }
+
+        return Ok();
+    }
+
+    private static string ComputeFawrySignature(string merchantRefNumber, string referenceNumber, decimal amount, int statusCode, string securityKey, string? merchantCode)
+    {
+        var data = $"{merchantRefNumber}{referenceNumber}{(long)(amount * 100)}{statusCode}{securityKey}";
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(data));
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
     /// <summary>

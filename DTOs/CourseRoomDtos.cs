@@ -57,6 +57,6 @@ public record QuizItemDto(
     int QuestionsCount
 );
 
-public record CourseProgressDto(int TotalXp, int AttendanceCount, int SubmittedTasks, int CompletedQuizzes, decimal CompletionPercent);
+public record CourseProgressDto(int XpTotal, int AttendanceCount, int SubmittedTasks, int CompletedQuizzes, decimal CompletionPercent);
 
 public record LeaderboardEntryDto(Guid StudentUserId, string StudentName, int TotalXp, int Rank);

@@ -24,18 +24,16 @@ public class AdminController(
     public async Task<IActionResult> Dashboard(CancellationToken cancellationToken)
         => Ok(await dashboardService.GetDashboardAsync(cancellationToken));
 
-    // ── Courses CRUD ───────────────────────────────────────────────────────
-    [AllowAnonymous]
+    // ── Database Repair (DEV ONLY) ──────────────────────────────────────────
+    [ApiExplorerSettings(IgnoreApi = true)]
     [HttpGet("fix-db")]
     public async Task<IActionResult> FixDb()
     {
+        if (!Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.Equals("Development", StringComparison.OrdinalIgnoreCase) == true)
+            return NotFound();
         try { await db.Database.ExecuteSqlRawAsync("ALTER TABLE CourseApplications ADD PaymentMethod nvarchar(max) NULL;"); } catch {}
         try { await db.Database.ExecuteSqlRawAsync("ALTER TABLE CourseApplications ADD PaymentReceiptPendingReview bit NOT NULL DEFAULT 0;"); } catch {}
         try { await db.Database.ExecuteSqlRawAsync("ALTER TABLE CourseApplications ADD PaymentReceiptUrl nvarchar(max) NULL;"); } catch {}
-        
-        try { await db.Database.ExecuteSqlRawAsync("INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion) VALUES ('20260516100147_InitialCreate', '9.0.0');"); } catch {}
-        try { await db.Database.ExecuteSqlRawAsync("INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion) VALUES ('20260517025349_updates', '9.0.0');"); } catch {}
-        try { await db.Database.ExecuteSqlRawAsync("INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion) VALUES ('20260517053749_AddPaymentReceiptFields', '9.0.0');"); } catch {}
 
         return Ok("Database schema patched successfully.");
     }

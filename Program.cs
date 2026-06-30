@@ -232,6 +232,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseHttpsRedirection();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
 app.UseRouting();
 if (app.Environment.IsDevelopment())
 {
@@ -249,7 +255,10 @@ else
         Secure = CookieSecurePolicy.Always
     });
 }
-app.UseSentryTracing(); // Must be after UseRouting and before UseAuthorization
+
+app.UseMiddleware<SecurityHeadersMiddleware>();
+app.UseMiddleware<RateLimitingMiddleware>();
+app.UseSentryTracing();
 app.UseCors("NextJsClient");
 app.UseAuthentication();
 app.UseSentryUserContext();
